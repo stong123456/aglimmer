@@ -1,0 +1,86 @@
+export const TOPICS = [
+  {
+    id: 'casual',
+    name: '随便聊聊 · 吹水频道',
+    question: '没什么大事，就是想找个人说两句。',
+    description: '日常碎碎念、奇怪脑洞、今天吃了什么，都可以。',
+    prompt: '今天我想随便聊聊____。也想问问你们：____？',
+    label: '轻松吹水',
+    icon: 'headphones',
+    color: 'mint',
+    mood: '需要勇气',
+  },
+  {
+    id: 'infp',
+    name: 'INFP 声音宇宙',
+    question: '据说 INFP 的声音都是一个样的，你们觉得呢？',
+    description: '不用证明你是哪一种人。说一句话，让声音自己回答。',
+    prompt:
+      '用平时的语气说：你好，今天也想把一点小小的快乐分享给你。再聊聊你觉得自己的声音像什么。',
+    label: '人格小实验',
+    icon: 'sun',
+    color: 'lavender',
+    mood: '需要勇气',
+  },
+  {
+    id: 'dialect',
+    name: '家乡话的温度',
+    question: '用你的家乡话说一句“别怕”，会有多温柔？',
+    description: '有些安慰，换成家乡话就不一样了。',
+    prompt: '用你的家乡话，说一句你小时候听过的安慰。再用普通话告诉我们，它是什么意思。',
+    label: '方言接力',
+    icon: 'leaf',
+    color: 'sage',
+    mood: '需要勇气',
+  },
+  {
+    id: 'goodnight',
+    name: '陌生人的晚安',
+    question: '如果你刷到这里还没睡，我想亲口对你说声晚安。',
+    description: '留一句晚安，陪另一个人结束今天。',
+    prompt: '想象你在对一个疲惫的朋友说晚安。今天辛苦了，今晚可以先把____放下。',
+    label: '夜晚电台',
+    icon: 'headphones',
+    color: 'blue',
+    mood: '有点累',
+  },
+  {
+    id: 'restart',
+    name: '重新开始的人',
+    question: '后来你是靠哪一句话，撑过那段很难的日子的？',
+    description: '你走过的那一小段路，也许正是别人需要的光。',
+    prompt:
+      '那段很难的日子里，有一句话一直陪着我：____。它帮到我，是因为____。如果你也在经历这些，我想说____。',
+    label: '真实经历',
+    icon: 'leaf',
+    color: 'peach',
+    mood: '重新开始',
+  },
+  {
+    id: 'ordinary',
+    name: '普通日子的光',
+    question: '今天有什么小事，让你觉得生活还挺值得？',
+    description: '不需要大事。热乎的早餐、路边的花，都算。',
+    prompt: '今天我遇见了____。它很小，但让我开心了好一会儿。我想把这份快乐，也留给你。',
+    label: '快乐碎碎念',
+    icon: 'sun',
+    color: 'butter',
+    mood: '需要勇气',
+  },
+  {
+    id: 'future',
+    name: '十年后的重逢',
+    question: '十年后的你再听到这段声音，会不会红了眼眶？',
+    description: '把今天的愿望，留在声音里。',
+    prompt:
+      '你好，十年后的我。现在的我正在____。我希望你还记得____。无论后来怎么样，请替今天的我____。',
+    label: '时光声音信',
+    icon: 'mail',
+    color: 'rose',
+    mood: '给未来的我',
+  },
+] as const;
+export type Topic = (typeof TOPICS)[number];
+export function getTopic(id: string) {
+  return TOPICS.find((t) => t.id === id);
+}

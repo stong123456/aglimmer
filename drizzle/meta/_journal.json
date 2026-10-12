@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791800603367,
+      "tag": "0000_cheerful_callisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791810937069,
+      "tag": "0001_unique_amphibian",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791811659751,
+      "tag": "0002_dear_stick",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791820504551,
+      "tag": "0003_bent_meggan",
+      "breakpoints": true
+    }
+  ]
+}

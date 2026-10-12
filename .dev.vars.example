@@ -1,0 +1,7 @@
+# Copy to .dev.vars, which is ignored by Git. Never paste secret keys in chat.
+SUPABASE_URL=""
+SUPABASE_PUBLISHABLE_KEY=""
+# Optional public Turnstile site key. Its secret is configured in Supabase Auth.
+TURNSTILE_SITE_KEY=""
+# Product user IDs from /api/me, never email addresses.
+ADMIN_USER_IDS=""
