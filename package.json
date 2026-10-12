@@ -17,7 +17,8 @@
     "test:api": "node tests/api-smoke.mjs",
     "test:channels": "node tests/channels-smoke.mjs",
     "test:auth": "node tests/auth-smoke.mjs",
-    "test:production": "node tests/auth-production.mjs"
+    "test:production": "node tests/auth-production.mjs",
+    "test:podcasts": "node tests/podcast-smoke.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -23,9 +23,11 @@ export async function GET(req: Request) {
     const mood = url.searchParams.get('mood');
     const mode = url.searchParams.get('mode') ?? 'featured';
     const topic = url.searchParams.get('topic');
-    if (topic && !getTopic(topic)) throw new HttpError(400, '没有找到这个主题');
+    if (topic && topic !== 'podcast' && !getTopic(topic))
+      throw new HttpError(400, '没有找到这个主题');
     const where = ["v.visibility='public'", "v.status='approved'"];
     const args: string[] = [];
+    if (!topic) where.push("(v.topic IS NULL OR v.topic!='podcast')");
     if (mode === 'featured') where.push('v.featured=1');
     if (topic) {
       where.push('v.topic=?');
@@ -66,13 +68,16 @@ export async function POST(req: Request) {
     assertOrigin(req);
     const u = (await identity(true))!;
     const length = Number(req.headers.get('content-length') ?? 0);
-    if (length > 12 * 1024 * 1024) throw new HttpError(413, '音频不能超过 10 MB');
+    if (length > 32 * 1024 * 1024) throw new HttpError(413, '请求不能超过 32 MB');
     const form = await req.formData();
     const topic = String(form.get('topic') ?? '');
-    if (topic && !getTopic(topic)) throw new HttpError(400, '请选择有效的投稿主题');
+    if (topic && topic !== 'podcast' && !getTopic(topic))
+      throw new HttpError(400, '请选择有效的投稿主题');
+    const podcast = topic === 'podcast';
+    const maxBytes = (podcast ? 30 : 10) * 1024 * 1024;
     const audio = form.get('audio');
-    if (!(audio instanceof File) || !audio.size || audio.size > 10 * 1024 * 1024)
-      throw new HttpError(400, '请选择不超过 10 MB 的音频');
+    if (!(audio instanceof File) || !audio.size || audio.size > maxBytes)
+      throw new HttpError(400, `请选择不超过 ${podcast ? 30 : 10} MB 的音频`);
     const allowed = [
       'audio/webm',
       'audio/mp4',
@@ -110,8 +115,12 @@ export async function POST(req: Request) {
     )
       throw new HttpError(400, '请选择有效的心情与可见范围');
     const duration = measured || (mime === 'audio/webm' ? webmDuration(bytes) : 0);
-    if (!Number.isFinite(duration) || duration < 1 || duration > 90.5)
-      throw new HttpError(400, '录音长度为 1–90 秒');
+    if (
+      !Number.isFinite(duration) ||
+      duration < (podcast ? 60 : 1) ||
+      duration > (podcast ? 1800.5 : 90.5)
+    )
+      throw new HttpError(400, podcast ? '播客长度为 1–30 分钟' : '录音长度为 1–90 秒');
     const recordedAt = String(form.get('recordedAt'));
     if (
       !/^\d{4}-\d{2}-\d{2}$/.test(recordedAt) ||

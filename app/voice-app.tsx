@@ -1,5 +1,7 @@
 'use client';
 import TopicChannel from './topic-channel';
+import { GentleListening, VoiceRings } from './gentle-experiences';
+import PodcastShelf from './podcast-shelf';
 import AuthDialog from './auth-dialog';
 import { TOPICS, getTopic, type Topic } from '@/lib/topics';
 import { audioMime } from '@/lib/audio-file';
@@ -10,7 +12,7 @@ import { MOODS, PROMPTS, type Voice, dateLabel, durationLabel } from '@/lib/shar
 import { readDraft, writeDraft } from '@/lib/draft';
 import { makeZip, download } from '@/lib/zip';
 
-type View = 'wall' | 'inspiration' | 'archive' | 'studio' | 'admin' | 'about' | 'topic';
+type View = 'wall' | 'inspiration' | 'archive' | 'studio' | 'admin' | 'about' | 'topic' | 'podcast';
 type User = { nickname: string; userId: string; admin: boolean };
 type Draft = {
   title: string;
@@ -115,6 +117,31 @@ function Landscape() {
 
 export default function VoiceApp() {
   const [authOpen, setAuthOpen] = useState(false);
+  const [sleepMinutes, setSleepMinutes] = useState(0);
+  const sleepDeadline = useRef(0);
+  const progressWrite = useRef(0);
+  useEffect(() => {
+    if (!sleepMinutes) return;
+    const tick = setInterval(() => {
+      if (Date.now() >= sleepDeadline.current) {
+        audioRef.current?.pause();
+        window.speechSynthesis?.cancel();
+        setIsPlaying(false);
+        setSleepMinutes(0);
+        notify('睡眠定时已暂停播放。晚安。');
+      }
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [sleepMinutes]);
+  function createPodcast() {
+    if (draft.title || blob) {
+      notify('请先保存或清空现有草稿，再开始播客。');
+      navigate('studio');
+      return;
+    }
+    setDraft({ ...initialDraft(), signature: user?.nickname ?? '', topic: 'podcast' });
+    navigate('studio');
+  }
   const [view, setView] = useState<View>('wall'),
     [user, setUser] = useState<User | null>(null),
     [meLoaded, setMeLoaded] = useState(false),
@@ -267,7 +294,9 @@ export default function VoiceApp() {
       const p = new URLSearchParams(location.search);
       const v = p.get('view');
       setView(
-        ['wall', 'inspiration', 'archive', 'studio', 'admin', 'about', 'topic'].includes(v ?? '')
+        ['wall', 'inspiration', 'archive', 'studio', 'admin', 'about', 'topic', 'podcast'].includes(
+          v ?? '',
+        )
           ? (v as View)
           : 'wall',
       );
@@ -536,6 +565,10 @@ export default function VoiceApp() {
     navigate('studio');
   }
   async function startRecording() {
+    if (draft.topic === 'podcast') {
+      notify('长内容请先录制好，再上传 1–30 分钟的音频。');
+      return;
+    }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       notify('当前浏览器不支持录音，请使用 HTTPS 或上传已有音频。');
       return;
@@ -599,8 +632,8 @@ export default function VoiceApp() {
   async function upload(file?: File) {
     if (!file) return;
     const mime = audioMime(file.name, file.type);
-    if (!mime || file.size > 10 * 1024 * 1024) {
-      notify('请选择 10 MB 以内的音频文件。');
+    if (!mime || file.size > (draft.topic === 'podcast' ? 30 : 10) * 1024 * 1024) {
+      notify(`请选择 ${draft.topic === 'podcast' ? 30 : 10} MB 以内的音频文件。`);
       return;
     }
     if (blob && !window.confirm('上传会替换当前录音草稿，继续吗？')) return;
@@ -620,7 +653,14 @@ export default function VoiceApp() {
       });
       if (!Number.isFinite(n) && mime === 'audio/webm')
         n = webmDuration(new Uint8Array(await file.arrayBuffer()));
-      if (!Number.isFinite(n) || n < 1 || n > 90.5) throw new Error('请上传 1–90 秒的音频');
+      if (
+        !Number.isFinite(n) ||
+        n < (draft.topic === 'podcast' ? 60 : 1) ||
+        n > (draft.topic === 'podcast' ? 1800.5 : 90.5)
+      )
+        throw new Error(
+          draft.topic === 'podcast' ? '请上传 1–30 分钟的播客' : '请上传 1–90 秒的音频',
+        );
       setBlob(new Blob([file], { type: mime }));
       setDuration(n);
       setConsent(false);
@@ -949,13 +989,13 @@ export default function VoiceApp() {
           </span>
         </button>
         <nav aria-label="主导航">
-          {(['wall', 'inspiration', 'archive'] as View[]).map((v, i) => (
+          {(['wall', 'podcast', 'inspiration', 'archive'] as View[]).map((v, i) => (
             <button
               key={v}
               className={view === v || (view === 'topic' && v === 'wall') ? 'current' : ''}
               onClick={() => navigate(v)}
             >
-              {['声音墙', '灵感信箱', '我的声音'][i]}
+              {['声音墙', '慢慢听', '灵感信箱', '我的声音'][i]}
             </button>
           ))}
         </nav>
@@ -1011,6 +1051,21 @@ export default function VoiceApp() {
               <Landscape />
             </section>
             <section className="wall-section">
+              <GentleListening
+                voices={voices}
+                playingId={playing?.id}
+                onPlay={(v) => void play(v)}
+              />
+              <div className="podcast-invite">
+                <div>
+                  <span className="handwritten">今晚，慢慢听</span>
+                  <h2>让一个故事，陪你结束今天。</h2>
+                  <p>长声音与睡前小故事，留给不用赶路的时间。</p>
+                </div>
+                <button className="button outline" onClick={() => navigate('podcast')}>
+                  打开故事书架 →
+                </button>
+              </div>
               <section className="topic-discovery" aria-label="主题公共频道">
                 <div className="section-heading">
                   <div>
@@ -1180,6 +1235,18 @@ export default function VoiceApp() {
             </section>
           )
         ) : null}
+        {view === 'podcast' ? (
+          <PodcastShelf
+            onPlay={(v) => void play(v)}
+            onCreate={createPodcast}
+            playingId={playing?.id}
+            timer={sleepMinutes}
+            onTimer={(minutes) => {
+              sleepDeadline.current = Date.now() + minutes * 60000;
+              setSleepMinutes(minutes);
+            }}
+          />
+        ) : null}
         {view === 'inspiration' ? (
           <section className="page-section">
             <div className="page-heading">
@@ -1251,7 +1318,7 @@ export default function VoiceApp() {
                 <Icon name="back" size={17} />
                 回到声音墙
               </button>
-              <h1>留下此刻的你</h1>
+              <h1>{draft.topic === 'podcast' ? '分享一段长声音' : '留下此刻的你'}</h1>
               <p>今天有人会听见，未来的你也会。</p>
             </div>
             {submitMessage ? (
@@ -1303,6 +1370,16 @@ export default function VoiceApp() {
                   {draft.parentId ? (
                     <p className="reply-note">这段回应会与当年的声音并排保存在你的档案里。</p>
                   ) : null}
+                  <div className="recording-guide">
+                    <strong>
+                      {draft.topic === 'podcast' ? '让故事有一个温柔的起点' : '不需要一遍说好'}
+                    </strong>
+                    <p>
+                      {draft.topic === 'podcast'
+                        ? '先介绍故事，再慢慢展开，最后留一句晚安。建议提前录好并试听，控制音量，注明原创或朗读授权。'
+                        : '先想一个具体的人，说一件真实的小事，再留下一句陪伴。录好可以试听、重录，草稿会留在当前浏览器。'}
+                    </p>
+                  </div>
                   <div className={`recorder ${recording ? 'recording' : ''}`}>
                     <div className="mic-orb">
                       <Icon name="mic" size={33} />
@@ -1315,7 +1392,9 @@ export default function VoiceApp() {
                         ? '正在听你说。准备好了，就按结束。'
                         : blob
                           ? '已经录好，先听听自己的声音。'
-                          : '最长 90 秒，真实的声音就很好。'}
+                          : draft.topic === 'podcast'
+                            ? '请上传 1–30 分钟、30 MB 以内的音频。'
+                            : '最长 90 秒，真实的声音就很好。'}
                     </p>
                     {blobUrl && !recording ? (
                       <audio
@@ -1333,10 +1412,17 @@ export default function VoiceApp() {
                     <div className="record-actions">
                       <button
                         className={`button ${recording ? 'record-stop' : 'primary'}`}
+                        disabled={draft.topic === 'podcast'}
                         onClick={recording ? stopRecording : startRecording}
                       >
                         <Icon name={recording ? 'pause' : 'mic'} />
-                        {recording ? '结束录音' : blob ? '重新录音' : '开始录音'}
+                        {draft.topic === 'podcast'
+                          ? '长内容请上传录音'
+                          : recording
+                            ? '结束录音'
+                            : blob
+                              ? '重新录音'
+                              : '开始录音'}
                       </button>
                       <button
                         className="text-button"
@@ -1420,6 +1506,7 @@ export default function VoiceApp() {
                             {t.name}
                           </option>
                         ))}
+                        <option value="podcast">慢慢听 · 长内容播客</option>
                       </select>
                       {draft.topic && getTopic(draft.topic) ? (
                         <p className="small-note">{getTopic(draft.topic)!.prompt}</p>
@@ -1566,6 +1653,26 @@ export default function VoiceApp() {
                     {exporting ? '正在整理档案…' : '完整导出档案'}
                   </button>
                 </div>
+                <VoiceRings
+                  voices={own}
+                  onPlay={(v) => void play(v)}
+                  onStart={(question, previous) => {
+                    if (draft.title || blob) {
+                      notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
+                      navigate('studio');
+                      return;
+                    }
+                    setDraft({
+                      ...initialDraft(),
+                      signature: user.nickname,
+                      title: question,
+                      mood: '给未来的我',
+                      visibility: 'private',
+                      parentId: previous?.id ?? '',
+                    });
+                    navigate('studio');
+                  }}
+                />
                 <div className="archive-toolbar">
                   <div className="chips">
                     {[
@@ -1828,7 +1935,8 @@ export default function VoiceApp() {
                 可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史备份的清理按运营备份周期处理。
               </p>
               <p>
-                每个账户最多保存 200 段、共 500 MB，每小时最多提交 10 段，每段最长 90 秒、最大 10
+                每个账户最多保存 200 段、共 500 MB，每小时最多提交 10 段，短声音每段最长 90 秒、最大
+                10 MB；播客为 1–30 分钟、最大 30
                 MB。录音草稿只保存在当前浏览器，清理数据会移除草稿。
               </p>
             </section>
@@ -1854,11 +1962,46 @@ export default function VoiceApp() {
         ref={audioRef}
         preload="none"
         onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onTimeUpdate={(e) => setPosition(e.currentTarget.currentTime)}
+        onPause={(e) => {
+          setIsPlaying(false);
+          if (playing?.topic === 'podcast') {
+            try {
+              localStorage.setItem(
+                'glimmer-progress:' + playing.id,
+                String(e.currentTarget.currentTime),
+              );
+            } catch {}
+          }
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          if (playing?.topic === 'podcast') {
+            try {
+              localStorage.removeItem('glimmer-progress:' + playing.id);
+            } catch {}
+          }
+        }}
+        onTimeUpdate={(e) => {
+          const time = e.currentTarget.currentTime;
+          setPosition(time);
+          if (playing?.topic === 'podcast' && Date.now() - progressWrite.current > 5000) {
+            try {
+              localStorage.setItem('glimmer-progress:' + playing.id, String(time));
+            } catch {}
+            progressWrite.current = Date.now();
+          }
+        }}
         onLoadedMetadata={(e) => {
-          if (Number.isFinite(e.currentTarget.duration)) setAudioDuration(e.currentTarget.duration);
+          if (Number.isFinite(e.currentTarget.duration)) {
+            setAudioDuration(e.currentTarget.duration);
+            if (playing?.topic === 'podcast') {
+              try {
+                const time = Number(localStorage.getItem('glimmer-progress:' + playing.id));
+                if (time > 0 && time < e.currentTarget.duration - 5)
+                  e.currentTarget.currentTime = time;
+              } catch {}
+            }
+          }
         }}
         onError={() => {
           setIsPlaying(false);
@@ -1910,6 +2053,15 @@ export default function VoiceApp() {
           >
             {rate}×
           </button>
+          {sleepMinutes > 0 ? (
+            <button
+              className="text-button sleep-status"
+              onClick={() => setSleepMinutes(0)}
+              aria-label="取消睡眠定时"
+            >
+              {sleepMinutes} 分钟定时 · 取消
+            </button>
+          ) : null}
           <button
             className="icon-button"
             aria-label="关闭播放器"
