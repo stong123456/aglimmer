@@ -1,6 +1,7 @@
 'use client';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
+import { podcastChapters, resumePosition } from '@/lib/podcast';
 import PodcastShelf from './podcast-shelf';
 import AuthDialog from './auth-dialog';
 import { TOPICS, getTopic, type Topic } from '@/lib/topics';
@@ -121,7 +122,7 @@ export default function VoiceApp() {
   const sleepDeadline = useRef(0);
   const progressWrite = useRef(0);
   useEffect(() => {
-    if (!sleepMinutes) return;
+    if (sleepMinutes <= 0) return;
     const tick = setInterval(() => {
       if (Date.now() >= sleepDeadline.current) {
         audioRef.current?.pause();
@@ -173,6 +174,63 @@ export default function VoiceApp() {
     [audioDuration, setAudioDuration] = useState(0),
     [rate, setRate] = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !playing || !playing.audioUrl) return;
+    const session = navigator.mediaSession;
+    if (typeof MediaMetadata !== 'undefined')
+      session.metadata = new MediaMetadata({
+        title: playing.title,
+        artist: playing.signature,
+        album: '一点光 · A Glimmer',
+      });
+    const actions: MediaSessionAction[] = [
+      'play',
+      'pause',
+      'seekbackward',
+      'seekforward',
+      'seekto',
+    ];
+    for (const action of actions) {
+      try {
+        session.setActionHandler(action, (detail) => {
+          const audio = audioRef.current;
+          if (!audio) return;
+          if (action === 'play') void audio.play().catch(() => notify('请回到页面点击播放。'));
+          else if (action === 'pause') audio.pause();
+          else if (Number.isFinite(audio.duration))
+            audio.currentTime = Math.max(
+              0,
+              Math.min(
+                audio.duration,
+                action === 'seekto'
+                  ? (detail.seekTime ?? audio.currentTime)
+                  : audio.currentTime +
+                      (action === 'seekbackward' ? -1 : 1) * (detail.seekOffset ?? 15),
+              ),
+            );
+        });
+      } catch {}
+    }
+    return () => {
+      for (const action of actions) {
+        try {
+          session.setActionHandler(action, null);
+        } catch {}
+      }
+      session.metadata = null;
+    };
+  }, [playing]);
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = playing
+          ? isPlaying
+            ? 'playing'
+            : 'paused'
+          : 'none';
+      } catch {}
+    }
+  }, [playing, isPlaying]);
   const modalRef = useRef<HTMLElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [draft, setDraft] = useState<Draft>(initialDraft),
@@ -1239,6 +1297,7 @@ export default function VoiceApp() {
           <PodcastShelf
             onPlay={(v) => void play(v)}
             onCreate={createPodcast}
+            onDetails={setSelected}
             playingId={playing?.id}
             timer={sleepMinutes}
             onTimer={(minutes) => {
@@ -1516,8 +1575,12 @@ export default function VoiceApp() {
                       文字稿 <span>可选 · 方便安静阅读</span>
                       <textarea
                         rows={3}
-                        maxLength={3000}
-                        placeholder="可以把你说的话写下来。第一版不会自动转写。"
+                        maxLength={draft.topic === 'podcast' ? 15000 : 3000}
+                        placeholder={
+                          draft.topic === 'podcast'
+                            ? '写下节目介绍或全文。可用 [00:00] 开场、[02:15] 第一章 这样的独立行标记章节。'
+                            : '可以把你说的话写下来。第一版不会自动转写。'
+                        }
                         value={draft.transcript}
                         onChange={(e) => update('transcript', e.target.value)}
                       />
@@ -1975,6 +2038,11 @@ export default function VoiceApp() {
         }}
         onEnded={() => {
           setIsPlaying(false);
+          if (sleepMinutes === -1) {
+            setSleepMinutes(0);
+            notify('本集已经结束。晚安。');
+          }
+
           if (playing?.topic === 'podcast') {
             try {
               localStorage.removeItem('glimmer-progress:' + playing.id);
@@ -1996,7 +2064,10 @@ export default function VoiceApp() {
             setAudioDuration(e.currentTarget.duration);
             if (playing?.topic === 'podcast') {
               try {
-                const time = Number(localStorage.getItem('glimmer-progress:' + playing.id));
+                const time = resumePosition(
+                  localStorage.getItem('glimmer-progress:' + playing.id),
+                  e.currentTarget.duration,
+                );
                 if (time > 0 && time < e.currentTarget.duration - 5)
                   e.currentTarget.currentTime = time;
               } catch {}
@@ -2041,25 +2112,49 @@ export default function VoiceApp() {
               {durationLabel(position)} / {durationLabel(audioDuration || playing.duration)}
             </span>
           </div>
+          {playing.topic === 'podcast' ? (
+            <div className="podcast-skip">
+              <button
+                aria-label="后退 15 秒"
+                onClick={() => {
+                  const a = audioRef.current;
+                  if (a) a.currentTime = Math.max(0, a.currentTime - 15);
+                }}
+              >
+                −15s
+              </button>
+              <button
+                aria-label="前进 15 秒"
+                onClick={() => {
+                  const a = audioRef.current;
+                  if (a && Number.isFinite(a.duration))
+                    a.currentTime = Math.min(a.duration, a.currentTime + 15);
+                }}
+              >
+                +15s
+              </button>
+            </div>
+          ) : null}
           <button
             disabled={playing.demo && !playing.audioUrl}
             className="rate-button"
             aria-label="切换播放速度"
             onClick={() => {
-              const n = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1;
+              const speeds = playing.topic === 'podcast' ? [0.75, 1, 1.25, 1.5] : [1, 1.25, 1.5];
+              const n = speeds[(speeds.indexOf(rate) + 1) % speeds.length];
               setRate(n);
               if (audioRef.current) audioRef.current.playbackRate = n;
             }}
           >
             {rate}×
           </button>
-          {sleepMinutes > 0 ? (
+          {sleepMinutes !== 0 ? (
             <button
               className="text-button sleep-status"
               onClick={() => setSleepMinutes(0)}
               aria-label="取消睡眠定时"
             >
-              {sleepMinutes} 分钟定时 · 取消
+              {sleepMinutes === -1 ? '本集结束后' : `${sleepMinutes} 分钟定时`} · 取消
             </button>
           ) : null}
           <button
@@ -2140,6 +2235,27 @@ export default function VoiceApp() {
               <Wave progress={playing?.id === selected.id ? position / (audioDuration || 1) : 0} />
               <span>{durationLabel(selected.duration)}</span>
             </div>
+            {selected.topic === 'podcast' &&
+            podcastChapters(selected.transcript, selected.duration).length ? (
+              <div className="podcast-chapters" aria-label="节目章节">
+                <h3>从这一章开始</h3>
+                {podcastChapters(selected.transcript, selected.duration).map((c) => (
+                  <button
+                    key={c.seconds}
+                    onClick={async () => {
+                      if (playing?.id !== selected.id) await play(selected);
+                      const a = audioRef.current;
+                      if (a && Number.isFinite(a.duration)) {
+                        a.currentTime = c.seconds;
+                        void a.play().catch(() => notify('请点击播放开始倾听。'));
+                      }
+                    }}
+                  >
+                    {durationLabel(c.seconds)} · {c.title}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="transcript">
               <h3>安静地读一读</h3>
               <p>{selected.transcript || '这段声音暂未提供文字稿，你可以播放原录音。'}</p>

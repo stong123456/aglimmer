@@ -1,15 +1,18 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { resumePosition } from '@/lib/podcast';
 import { type Voice, durationLabel, dateLabel } from '@/lib/shared';
 export default function PodcastShelf({
   onPlay,
   onCreate,
+  onDetails,
   playingId,
   timer,
   onTimer,
 }: {
   onPlay: (v: Voice) => void;
   onCreate: () => void;
+  onDetails: (v: Voice) => void;
   playingId?: string;
   timer: number;
   onTimer: (minutes: number) => void;
@@ -18,8 +21,13 @@ export default function PodcastShelf({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [length, setLength] = useState('all');
+  const [progress, setProgress] = useState<Record<string, number>>({});
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
+    setError('');
     fetch('/api/voices?topic=podcast&mode=all', { signal: controller.signal })
       .then(async (r) => {
         const d = (await r.json()) as { error?: string; voices: Voice[] };
@@ -33,8 +41,29 @@ export default function PodcastShelf({
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, []);
-  const shown = episodes.filter((v) => `${v.title}${v.signature}${v.transcript}`.includes(query));
+  }, [retry]);
+  useEffect(() => {
+    const update = () => {
+      const values: Record<string, number> = {};
+      for (const v of episodes) {
+        try {
+          values[v.id] = resumePosition(
+            localStorage.getItem('glimmer-progress:' + v.id),
+            v.duration,
+          );
+        } catch {}
+      }
+      setProgress(values);
+    };
+    update();
+    const interval = setInterval(update, 10000);
+    return () => clearInterval(interval);
+  }, [episodes]);
+  const shown = episodes.filter(
+    (v) =>
+      `${v.title}${v.signature}${v.transcript}`.includes(query.trim()) &&
+      (length === 'all' || (length === 'short' ? v.duration < 600 : v.duration >= 600)),
+  );
   return (
     <section className="page-section podcast-page">
       <div className="podcast-cover">
@@ -64,10 +93,19 @@ export default function PodcastShelf({
           睡眠定时
           <select value={timer} onChange={(e) => onTimer(Number(e.target.value))}>
             <option value={0}>关闭</option>
+            <option value={-1}>本集结束后</option>
             <option value={15}>15 分钟后暂停</option>
             <option value={30}>30 分钟后暂停</option>
             <option value={45}>45 分钟后暂停</option>
             <option value={60}>60 分钟后暂停</option>
+          </select>
+        </label>
+        <label>
+          想听多久？
+          <select value={length} onChange={(e) => setLength(e.target.value)}>
+            <option value="all">不限时长</option>
+            <option value="short">十分钟以内</option>
+            <option value="long">十到三十分钟</option>
           </select>
         </label>
       </div>
@@ -77,7 +115,12 @@ export default function PodcastShelf({
       {loading ? (
         <p role="status">正在打开故事书架…</p>
       ) : error ? (
-        <p role="alert">{error}</p>
+        <div role="alert">
+          <p>{error}</p>
+          <button className="button outline" onClick={() => setRetry((n) => n + 1)}>
+            重新打开书架
+          </button>
+        </div>
       ) : shown.length ? (
         <div className="podcast-grid">
           {shown.map((v) => (
@@ -89,15 +132,33 @@ export default function PodcastShelf({
                 {v.signature} · {dateLabel(v.recordedAt)}
               </small>
               <button className="button outline" onClick={() => onPlay(v)}>
-                {playingId === v.id ? '播放 / 暂停' : '开始倾听'}
+                {playingId === v.id
+                  ? '播放 / 暂停'
+                  : progress[v.id]
+                    ? `继续收听 · ${durationLabel(progress[v.id])}`
+                    : '开始倾听'}
+              </button>
+              <button className="text-button episode-details" onClick={() => onDetails(v)}>
+                文字稿、章节与收藏 →
               </button>
             </article>
           ))}
         </div>
       ) : (
         <div className="empty">
-          <h2>{query ? '还没有找到这个故事' : '第一本有声音的故事书，等你来写。'}</h2>
+          <h2>{episodes.length ? '这个条件下还没有故事' : '第一本有声音的故事书，等你来写。'}</h2>
           <p>这里会收录经过审核的长内容。可以分享原创故事，或你有朗读授权的作品。</p>
+          {episodes.length ? (
+            <button
+              className="text-button"
+              onClick={() => {
+                setQuery('');
+                setLength('all');
+              }}
+            >
+              清除筛选
+            </button>
+          ) : null}
           <button className="button outline" onClick={onCreate}>
             上传第一期播客
           </button>

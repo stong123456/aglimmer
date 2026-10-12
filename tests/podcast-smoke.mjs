@@ -40,7 +40,10 @@ function form(seconds, topic = 'podcast') {
     mood: '有点累',
     visibility: 'public',
     topic,
-    transcript: '测试数据',
+    transcript:
+      topic === 'podcast'
+        ? '[00:00] 故事开场\n[02:30] 一盏小灯\n' + '这是原创的温柔睡前故事。'.repeat(400)
+        : '测试数据',
     source: '原创测试',
   }))
     f.set(k, v);
@@ -64,7 +67,9 @@ try {
   });
   assert.equal(r.status, 200);
   listing = await (await request('/api/voices?topic=podcast&mode=all')).json();
-  assert.ok(listing.voices.some((v) => v.id === d.id && v.duration === 360));
+  assert.ok(
+    listing.voices.some((v) => v.id === d.id && v.duration === 360 && v.transcript.length > 3000),
+  );
   listing = await (await request('/api/voices?mode=all')).json();
   assert.ok(!listing.voices.some((v) => v.id === d.id), 'Podcast must not enter short wall');
   assert.equal((await request('/api/voices', { method: 'POST', body: form(30) })).status, 400);

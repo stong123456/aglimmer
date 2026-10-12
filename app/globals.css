@@ -3034,3 +3034,50 @@ footer > button:last-child {
     white-space: normal;
   }
 }
+
+.episode-details {
+  display: block;
+  margin-top: 16px;
+}
+.podcast-chapters {
+  background: #eef1e7;
+  padding: 18px;
+  border-radius: 12px;
+  margin: 18px 0;
+}
+.podcast-chapters h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.podcast-chapters button {
+  display: block;
+  text-align: left;
+  line-height: 1.7;
+  color: #476347;
+  padding: 7px 0;
+}
+.podcast-skip {
+  display: flex;
+  gap: 8px;
+}
+.podcast-skip button {
+  padding: 8px;
+  background: #f1f3e8;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.transcript p {
+  white-space: pre-wrap;
+}
+.podcast-tools label {
+  min-width: 180px;
+}
+@media (max-width: 760px) {
+  .player-bar .podcast-skip {
+    gap: 3px;
+  }
+  .podcast-skip button {
+    padding: 5px;
+    font-size: 10px;
+  }
+}

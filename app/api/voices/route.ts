@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     }
     const title = text(form.get('title'), 60, '标题', true),
       signature = text(form.get('signature'), 24, '署名', true),
-      transcript = text(form.get('transcript') ?? '', 3000, '文字稿'),
+      transcript = text(form.get('transcript') ?? '', podcast ? 15000 : 3000, '文字稿'),
       source = text(form.get('source') ?? '', 300, '引用出处');
     const blocked = blockedReason(title + ' ' + transcript);
     if (blocked) throw new HttpError(400, blocked);

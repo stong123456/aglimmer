@@ -13,7 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts",
+    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts tests/podcast.test.ts",
     "test:api": "node tests/api-smoke.mjs",
     "test:channels": "node tests/channels-smoke.mjs",
     "test:auth": "node tests/auth-smoke.mjs",
