@@ -17,9 +17,9 @@ export async function GET() {
     if (!u) return json({ user: null });
     await ensureProfile(u.userId);
     const p = await db()
-      .prepare('SELECT nickname FROM profiles WHERE id=?')
+      .prepare('SELECT nickname,avatar_key FROM profiles WHERE id=?')
       .bind(u.userId)
-      .first<{ nickname: string }>();
+      .first<{ nickname: string; avatar_key: string | null }>();
     const [own, saved] = await Promise.all([
       db().prepare(`${SELECT} WHERE v.owner_id=? ORDER BY v.created_at DESC`).bind(u.userId).all(),
       db()
@@ -32,6 +32,7 @@ export async function GET() {
     return json({
       user: {
         nickname: p?.nickname,
+        avatarUrl: p?.avatar_key ? '/api/me/avatar?v=' + p.avatar_key.split('/').at(-1) : null,
         userId: u.userId,
         email: u.email,
         provider: u.provider,

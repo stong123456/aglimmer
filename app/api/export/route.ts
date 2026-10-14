@@ -14,7 +14,26 @@ export async function GET() {
       )
       .bind(u.userId)
       .all();
+    const profile = await db()
+      .prepare('SELECT id,nickname,created_at,avatar_key,avatar_mime FROM profiles WHERE id=?')
+      .bind(u.userId)
+      .first<{
+        id: string;
+        nickname: string;
+        created_at: string;
+        avatar_key: string | null;
+        avatar_mime: string | null;
+      }>();
     return json({
+      profile: profile
+        ? {
+            id: profile.id,
+            nickname: profile.nickname,
+            createdAt: profile.created_at,
+            avatarMime: profile.avatar_mime,
+            avatarUrl: profile.avatar_key ? '/api/me/avatar' : null,
+          }
+        : null,
       messages: messages.results.map((m) => ({
         ...m,
         ...(m.kind === 'image' ? { mediaUrl: `/api/messages/${m.id}/media` } : {}),

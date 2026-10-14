@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { PreferencesProvider } from './preferences';
 export const metadata: Metadata = {
   title: '一点光 · A Glimmer',
   description:
@@ -8,8 +9,15 @@ export const metadata: Metadata = {
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
-      <body>{children}</body>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var p=JSON.parse(localStorage.getItem('aglimmer-preferences')||'{}');if(['warm','night','pink'].includes(p.theme))document.documentElement.dataset.theme=p.theme;}catch(e){}`,
+          }}
+        />
+        <PreferencesProvider>{children}</PreferencesProvider>
+      </body>
     </html>
   );
 }

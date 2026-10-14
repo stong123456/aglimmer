@@ -12,6 +12,10 @@
 - 七个公共主题频道：吹水、INFP、方言、晚安、重新开始、普通日子、未来重逢；支持文字、图片与直接录制/上传语音。
 - 六类灵感卡、浏览器录音、90 秒自动停止、上传音频、试听与本地草稿恢复。
 - 账户与署名设置；录制日期、服务器保存时间和当次署名分别保存。
+- 账户头像上传、更换与移除，自动居中裁切至 512 像素；目前仅在本人账户界面显示。
+- 暖纸质、深蓝夜间、桃粉杂志三套可切换主题（不含亮蓝）；中英文界面，投稿原文与历史署名保持不变。
+- 公开且审核通过的声音可制作带署名、日期与收听二维码的 PNG 明信片。
+- 两步录音流程：先录音试听，再确认署名、日期与可见范围；其他信息可选填写。
 - 公开投稿先审核，首页精选单独决定；私密内容只能由作者访问，审核员不能访问他人的私密录音。
 - “给了我力量”、收藏、分享链接、举报、审核说明与审核日志。
 - 按年份浏览声音年鉴、十年/二十年目标年份、“未来回声”关联新旧录音。
@@ -38,6 +42,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_unique_amphibian.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_dear_stick.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0003_bent_meggan.sql
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0004_overconfident_talon.sql
 npm run dev -- --hostname 127.0.0.1 --port 5173
 ```
 
@@ -59,7 +64,7 @@ API 测试创建自己可清理的本地测试数据，并恢复署名。禁止�
 
 ## 部署与 GitHub
 
-当前按用户要求 **尚未推送 GitHub、尚未上线**。
+源码已同步到 [GitHub](https://github.com/stong123456/aglimmer)。公开测试版已获得授权，但 Sites 源码工作流的凭据输入被执行权限策略拒绝，尚未上线。
 
 `.openai/hosting.json` 已保留本次创建的未发布 Sites 身份和 DB/BUCKET 声明；之后继续此项目应复用该 ID，不应重复创建。Sites 部署会配置 D1/R2 并应用迁移。源码可推送到 GitHub，但 GitHub Pages 无法运行本项目的服务端功能；普通 Vercel 部署也不能直接替代 D1/R2 和 Sites 身份网关。
 

@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedView } from './preferences';
 import { useEffect, useRef, useState } from 'react';
 import { normalizeEmail, validOtp } from '@/lib/auth-core';
 async function api(path: string, body?: unknown) {
@@ -208,194 +209,200 @@ export default function AuthDialog({
     }
   }
   return (
-    <div
-      className="modal-backdrop auth-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !busy) onClose();
-      }}
-    >
-      <section
-        className="auth-dialog"
-        ref={dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-title"
-        tabIndex={-1}
-      >
-        <button
-          className="modal-close icon-button"
-          aria-label="关闭登录窗口"
-          onClick={onClose}
-          disabled={busy}
+    <LocalizedView>
+      {
+        <div
+          className="modal-backdrop auth-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !busy) onClose();
+          }}
         >
-          ×
-        </button>
-        <div className="auth-brand">
-          ☼{' '}
-          <span>
-            一点光<small>A Glimmer</small>
-          </span>
-        </div>
-        <h2 id="auth-title">
-          {step === 'welcome'
-            ? '以后，该怎么称呼你？'
-            : step === 'code'
-              ? '一封邮件，带你回来。'
-              : '给你的声音，\n一个能回来的地方。'}
-        </h2>
-        <p className="auth-subtitle">
-          {step === 'welcome'
-            ? '给自己选一个署名，不必使用真实姓名。'
-            : step === 'code'
-              ? `验证码已发送到 ${email}。`
-              : '输入邮箱，登录或建立你的声音档案。无需密码。'}
-        </p>
-        {step === 'email' ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void send();
-            }}
+          <section
+            className="auth-dialog"
+            ref={dialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-title"
+            tabIndex={-1}
           >
-            <label>
-              你的邮箱
-              <input
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                maxLength={254}
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
-                required
-              />
-            </label>
-            {config?.captchaSiteKey ? <div ref={captchaBox} className="auth-captcha" /> : null}
             <button
-              className="button primary auth-primary"
-              type="submit"
-              disabled={busy || !config?.ready || (!!config?.captchaSiteKey && !captcha)}
-            >
-              {busy ? '正在发送…' : config === null ? '正在连接…' : '获取验证码'} →
-            </button>
-            <p className="auth-consent">
-              继续即表示同意{' '}
-              <button type="button" className="inline-link" onClick={onRules}>
-                社区与保存约定
-              </button>
-              。你的邮箱不会公开。
-            </p>
-          </form>
-        ) : step === 'code' ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void verify();
-            }}
-          >
-            <label>
-              六位验证码
-              <input
-                className="otp-input"
-                type="text"
-                autoComplete="one-time-code"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value.replace(/\D/g, ''));
-                  setError('');
-                }}
-                placeholder="000000"
-                required
-              />
-            </label>
-            <button className="button primary auth-primary" disabled={busy} type="submit">
-              {busy ? '正在验证…' : '登录 / 建立档案'} →
-            </button>
-            <div className="auth-code-actions">
-              <button
-                type="button"
-                className="text-button"
-                disabled={busy || cooldown > 0}
-                onClick={send}
-              >
-                {cooldown > 0 ? `${cooldown} 秒后可重发` : '重新发送验证码'}
-              </button>
-              <button
-                type="button"
-                className="text-button"
-                disabled={busy}
-                onClick={() => {
-                  setStep('email');
-                  setSent(false);
-                  setError('');
-                }}
-              >
-                换一个邮箱
-              </button>
-            </div>
-            {config?.captchaSiteKey ? <div ref={captchaBox} className="auth-captcha" /> : null}
-            <p className="small-note">没找到邮件？看看垃圾邮件文件夹。请使用最新收到的验证码。</p>
-          </form>
-        ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void finish();
-            }}
-          >
-            <label>
-              你的署名
-              <input
-                maxLength={24}
-                autoComplete="nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="比如：小满、远山、今天的我"
-              />
-            </label>
-            <button className="button primary auth-primary" disabled={busy} type="submit">
-              {busy ? '正在保存…' : '进入我的声音世界'} →
-            </button>
-            <button
-              className="text-button auth-skip"
-              type="button"
+              className="modal-close icon-button"
+              aria-label="关闭登录窗口"
+              onClick={onClose}
               disabled={busy}
-              onClick={() => {
-                void onComplete();
-              }}
             >
-              先用默认署名，之后再改
+              ×
             </button>
-          </form>
-        )}
-        {error ? (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {config && !config.ready && step === 'email' ? (
-          <div className="auth-setup-note">
-            <strong>邮箱登录正在准备中</strong>
-            <p>平台和发信域名接通后即可使用，当前不会发送验证码邮件。</p>
-            {config.localDemo ? (
-              <button className="text-button" disabled={busy} onClick={local}>
-                使用本地演示账户（不发送邮件） →
-              </button>
+            <div className="auth-brand">
+              ☼{' '}
+              <span>
+                一点光<small>A Glimmer</small>
+              </span>
+            </div>
+            <h2 id="auth-title">
+              {step === 'welcome'
+                ? '以后，该怎么称呼你？'
+                : step === 'code'
+                  ? '一封邮件，带你回来。'
+                  : '给你的声音，\n一个能回来的地方。'}
+            </h2>
+            <p className="auth-subtitle">
+              {step === 'welcome'
+                ? '给自己选一个署名，不必使用真实姓名。'
+                : step === 'code'
+                  ? `验证码已发送到 ${email}。`
+                  : '输入邮箱，登录或建立你的声音档案。无需密码。'}
+            </p>
+            {step === 'email' ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void send();
+                }}
+              >
+                <label>
+                  你的邮箱
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    maxLength={254}
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
+                    required
+                  />
+                </label>
+                {config?.captchaSiteKey ? <div ref={captchaBox} className="auth-captcha" /> : null}
+                <button
+                  className="button primary auth-primary"
+                  type="submit"
+                  disabled={busy || !config?.ready || (!!config?.captchaSiteKey && !captcha)}
+                >
+                  {busy ? '正在发送…' : config === null ? '正在连接…' : '获取验证码'} →
+                </button>
+                <p className="auth-consent">
+                  继续即表示同意{' '}
+                  <button type="button" className="inline-link" onClick={onRules}>
+                    社区与保存约定
+                  </button>
+                  。你的邮箱不会公开。
+                </p>
+              </form>
+            ) : step === 'code' ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void verify();
+                }}
+              >
+                <label>
+                  六位验证码
+                  <input
+                    className="otp-input"
+                    type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => {
+                      setCode(e.target.value.replace(/\D/g, ''));
+                      setError('');
+                    }}
+                    placeholder="000000"
+                    required
+                  />
+                </label>
+                <button className="button primary auth-primary" disabled={busy} type="submit">
+                  {busy ? '正在验证…' : '登录 / 建立档案'} →
+                </button>
+                <div className="auth-code-actions">
+                  <button
+                    type="button"
+                    className="text-button"
+                    disabled={busy || cooldown > 0}
+                    onClick={send}
+                  >
+                    {cooldown > 0 ? `${cooldown} 秒后可重发` : '重新发送验证码'}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-button"
+                    disabled={busy}
+                    onClick={() => {
+                      setStep('email');
+                      setSent(false);
+                      setError('');
+                    }}
+                  >
+                    换一个邮箱
+                  </button>
+                </div>
+                {config?.captchaSiteKey ? <div ref={captchaBox} className="auth-captcha" /> : null}
+                <p className="small-note">
+                  没找到邮件？看看垃圾邮件文件夹。请使用最新收到的验证码。
+                </p>
+              </form>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void finish();
+                }}
+              >
+                <label>
+                  你的署名
+                  <input
+                    maxLength={24}
+                    autoComplete="nickname"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="比如：小满、远山、今天的我"
+                  />
+                </label>
+                <button className="button primary auth-primary" disabled={busy} type="submit">
+                  {busy ? '正在保存…' : '进入我的声音世界'} →
+                </button>
+                <button
+                  className="text-button auth-skip"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    void onComplete();
+                  }}
+                >
+                  先用默认署名，之后再改
+                </button>
+              </form>
+            )}
+            {error ? (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
             ) : null}
-          </div>
-        ) : null}
-        <p className="auth-footer">
-          {sent
-            ? '原来的声音和草稿，会等你回来。'
-            : '先听一听也可以。保存时再登录，录好的草稿会留在当前浏览器。'}
-        </p>
-      </section>
-    </div>
+            {config && !config.ready && step === 'email' ? (
+              <div className="auth-setup-note">
+                <strong>邮箱登录正在准备中</strong>
+                <p>平台和发信域名接通后即可使用，当前不会发送验证码邮件。</p>
+                {config.localDemo ? (
+                  <button className="text-button" disabled={busy} onClick={local}>
+                    使用本地演示账户（不发送邮件） →
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+            <p className="auth-footer">
+              {sent
+                ? '原来的声音和草稿，会等你回来。'
+                : '先听一听也可以。保存时再登录，录好的草稿会留在当前浏览器。'}
+            </p>
+          </section>
+        </div>
+      }
+    </LocalizedView>
   );
 }

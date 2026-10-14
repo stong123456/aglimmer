@@ -2,6 +2,8 @@ import { sqliteTable, text, integer, primaryKey, index } from 'drizzle-orm/sqlit
 export const profiles = sqliteTable('profiles', {
   id: text('id').primaryKey(),
   nickname: text('nickname').notNull(),
+  avatarKey: text('avatar_key'),
+  avatarMime: text('avatar_mime'),
   createdAt: text('created_at').notNull(),
 });
 export const voices = sqliteTable(

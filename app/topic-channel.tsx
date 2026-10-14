@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedView, usePreferences } from './preferences';
 import { useEffect, useRef, useState } from 'react';
 import type { Topic } from '@/lib/topics';
 import type { ChannelMessage } from '@/lib/moderation';
@@ -30,6 +31,7 @@ export default function TopicChannel({
   playing: Voice | null;
   isPlaying: boolean;
 }) {
+  const { t } = usePreferences();
   const [messages, setMessages] = useState<ChannelMessage[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
@@ -269,7 +271,7 @@ export default function TopicChannel({
       setNotice('登录后可举报。');
       return;
     }
-    const reason = window.prompt('请说明这条消息有什么问题（最多 300 字）');
+    const reason = window.prompt(t('请说明这条消息有什么问题（最多 300 字）'));
     if (!reason) return;
     try {
       await api(m.kind === 'voice' ? `/api/voices/${m.id}` : `/api/messages/${m.id}`, {
@@ -283,7 +285,7 @@ export default function TopicChannel({
     }
   }
   async function remove(m: ChannelMessage) {
-    if (!window.confirm('确定删除自己的这条消息？删除后无法恢复。')) return;
+    if (!window.confirm(t('确定删除自己的这条消息？删除后无法恢复。'))) return;
     try {
       await api(m.kind === 'voice' ? `/api/voices/${m.id}` : `/api/messages/${m.id}`, {
         method: 'DELETE',
@@ -294,252 +296,273 @@ export default function TopicChannel({
     }
   }
   return (
-    <section className="page-section channel-page">
-      <button className="text-button" onClick={onBack}>
-        ← 回到声音墙
-      </button>
-      <div className={`channel-heading theme-${topic.color}`}>
-        <span className="topic-label">{topic.label} · 公共频道</span>
-        <h1>{topic.name}</h1>
-        <h2>{topic.question}</h2>
-        <p>{topic.description}</p>
-        <div className="channel-media-types">
-          <span>◌ 语音</span>
-          <span>✎ 文字</span>
-          <span>▧ 图片</span>
-          <span>审核后公开 · 每 15 秒更新</span>
-        </div>
-      </div>
-      <div className="channel-layout">
-        <div className="channel-main">
-          <div className="channel-stream" aria-label="频道消息">
-            <div className="channel-stream-title">
-              <h2>在这里，说两句</h2>
-              <button className="text-button" onClick={() => refresh(true)}>
-                刷新频道 ↻
-              </button>
+    <LocalizedView>
+      {
+        <section className="page-section channel-page">
+          <button className="text-button" onClick={onBack}>
+            ← 回到声音墙
+          </button>
+          <div className={`channel-heading theme-${topic.color}`}>
+            <span className="topic-label">{topic.label} · 公共频道</span>
+            <h1>{topic.name}</h1>
+            <h2>{topic.question}</h2>
+            <p>{topic.description}</p>
+            <div className="channel-media-types">
+              <span>◌ 语音</span>
+              <span>✎ 文字</span>
+              <span>▧ 图片</span>
+              <span>审核后公开 · 每 15 秒更新</span>
             </div>
-            <div className="channel-welcome">
-              欢迎来到「{topic.name}」。可以轻松交流，也请尊重正在屏幕另一端的每个人。
-            </div>
-            {error ? (
-              <p className="channel-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-            {loading ? (
-              <p className="loading">正在打开频道…</p>
-            ) : messages.length ? (
-              messages.map((m) => (
-                <article className={`chat-message ${m.mine ? 'my-message' : ''}`} key={m.id}>
-                  <span className="chat-avatar">{m.signature.slice(0, 1)}</span>
-                  <div className="chat-message-content">
-                    <div className="chat-byline">
-                      <strong>{m.signature}</strong>
-                      <time>
-                        {new Date(m.createdAt).toLocaleString('zh-CN', {
-                          timeZone: 'Asia/Shanghai',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </time>
-                      {m.status !== 'approved' ? (
-                        <span className={`status status-${m.status}`}>
-                          {m.status === 'pending' ? '仅你可见 · 待审核' : '审核退回'}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className={`chat-bubble chat-${m.kind}`}>
-                      {m.kind === 'voice' && m.voice ? (
-                        <>
-                          <button
-                            className="chat-voice-play"
-                            aria-label={`播放${m.voice.title}`}
-                            onClick={() => onPlay(m.voice!)}
-                          >
-                            <span>{playing?.id === m.id && isPlaying ? 'Ⅱ' : '▶'}</span>
-                            <span className="mini-wave">▂▅▃▆▂▅▃▆▅▂▅▃</span>
-                            <span>{durationLabel(m.voice.duration)}</span>
-                          </button>
-                          <button className="text-button" onClick={() => onOpen(m.voice!)}>
-                            声音档案 · 查看署名与日期 →
-                          </button>
-                        </>
-                      ) : null}
-                      {m.kind === 'image' ? (
-                        <a href={m.mediaUrl} target="_blank" rel="noreferrer">
-                          <img
-                            src={m.mediaUrl}
-                            alt={m.body || `${m.signature}分享的图片`}
-                            loading="lazy"
-                          />
-                        </a>
-                      ) : null}
-                      {m.body ? <p>{m.body}</p> : null}
-                    </div>
-                    {m.reviewNote ? <p className="review-note">审核说明：{m.reviewNote}</p> : null}
-                    <div className="chat-message-actions">
-                      {m.mine ? (
-                        <button onClick={() => remove(m)}>删除自己的消息</button>
-                      ) : m.status === 'approved' ? (
-                        <button onClick={() => report(m)}>举报</button>
-                      ) : null}
-                    </div>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="channel-empty">
-                <span>◌</span>
-                <h3>第一句话，留给你。</h3>
-                <p>
-                  {topic.id === 'casual'
-                    ? '“我今天吃到了好好吃的东西。” 就从这种小事开始。'
-                    : '这个频道还没有公开留言。先留下你的声音、文字或照片吧。'}
-                </p>
-              </div>
-            )}
           </div>
-          <div className="channel-composer">
-            <div className="composer-tabs" role="tablist" aria-label="消息类型">
-              {(['text', 'voice', 'image'] as const).map((t, i) => (
-                <button
-                  key={t}
-                  role="tab"
-                  aria-selected={tab === t}
-                  className={tab === t ? 'selected' : ''}
-                  onClick={() => setKind(t)}
-                >
-                  {['✎ 文字', '◌ 语音', '▧ 图片'][i]}
-                </button>
-              ))}
-            </div>
-            {tab === 'voice' ? (
-              <div className="channel-recorder">
-                <span className={recording ? 'record-dot' : ''} />
-                <span>{durationLabel(recording ? seconds : duration)}</span>
-                <button
-                  className="button outline small"
-                  onClick={() => (recording ? recorder.current?.stop() : record())}
-                >
-                  {recording ? '结束录音' : blob ? '重新录音' : '录一段声音'}
-                </button>
-                <button
-                  className="text-button"
-                  disabled={recording}
-                  onClick={() => audioInput.current?.click()}
-                >
-                  上传音频
-                </button>
-                {audioUrl && !recording ? (
-                  <audio
-                    controls
-                    src={audioUrl}
-                    onPlay={() => {
-                      document.querySelectorAll<HTMLAudioElement>('audio').forEach((a) => {
-                        if (a.src !== audioUrl) a.pause();
-                      });
-                    }}
-                  />
-                ) : null}
-                <input
-                  hidden
-                  type="file"
-                  ref={audioInput}
-                  accept="audio/*,.webm,.m4a,.wav,.mp3"
-                  onChange={(e) => chooseAudio(e.target.files?.[0])}
-                />
-              </div>
-            ) : null}
-            {tab === 'image' ? (
-              <div className="channel-image-input">
-                {imageUrl ? (
-                  <>
-                    <img src={imageUrl} alt="待发送图片预览" />
-                    <button className="text-button" onClick={() => setImage(null)}>
-                      移除图片
-                    </button>
-                  </>
-                ) : (
-                  <button className="image-drop" onClick={() => imageInput.current?.click()}>
-                    ▧ 选择一张想分享的照片 <small>PNG / JPEG / WebP · 最多 5 MB</small>
+          <div className="channel-layout">
+            <div className="channel-main">
+              <div className="channel-stream" aria-label="频道消息">
+                <div className="channel-stream-title">
+                  <h2>在这里，说两句</h2>
+                  <button className="text-button" onClick={() => refresh(true)}>
+                    刷新频道 ↻
                   </button>
+                </div>
+                <div className="channel-welcome">
+                  欢迎来到「{topic.name}」。可以轻松交流，也请尊重正在屏幕另一端的每个人。
+                </div>
+                {error ? (
+                  <p className="channel-error" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+                {loading ? (
+                  <p className="loading">正在打开频道…</p>
+                ) : messages.length ? (
+                  messages.map((m) => (
+                    <article className={`chat-message ${m.mine ? 'my-message' : ''}`} key={m.id}>
+                      <span className="chat-avatar">{m.signature.slice(0, 1)}</span>
+                      <div className="chat-message-content">
+                        <div className="chat-byline">
+                          <strong>
+                            <span data-original className="original-text">
+                              {m.signature}
+                            </span>
+                          </strong>
+                          <time>
+                            {new Date(m.createdAt).toLocaleString('zh-CN', {
+                              timeZone: 'Asia/Shanghai',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </time>
+                          {m.status !== 'approved' ? (
+                            <span className={`status status-${m.status}`}>
+                              {m.status === 'pending' ? '仅你可见 · 待审核' : '审核退回'}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className={`chat-bubble chat-${m.kind}`}>
+                          {m.kind === 'voice' && m.voice ? (
+                            <>
+                              <button
+                                className="chat-voice-play"
+                                aria-label={`播放${m.voice.title}`}
+                                onClick={() => onPlay(m.voice!)}
+                              >
+                                <span>{playing?.id === m.id && isPlaying ? 'Ⅱ' : '▶'}</span>
+                                <span className="mini-wave">▂▅▃▆▂▅▃▆▅▂▅▃</span>
+                                <span>{durationLabel(m.voice.duration)}</span>
+                              </button>
+                              <button className="text-button" onClick={() => onOpen(m.voice!)}>
+                                声音档案 · 查看署名与日期 →
+                              </button>
+                            </>
+                          ) : null}
+                          {m.kind === 'image' ? (
+                            <a href={m.mediaUrl} target="_blank" rel="noreferrer">
+                              <img
+                                src={m.mediaUrl}
+                                alt={m.body || `${m.signature}分享的图片`}
+                                loading="lazy"
+                              />
+                            </a>
+                          ) : null}
+                          {m.body ? (
+                            <p>
+                              <span data-original className="original-text">
+                                {m.body}
+                              </span>
+                            </p>
+                          ) : null}
+                        </div>
+                        {m.reviewNote ? (
+                          <p className="review-note">
+                            审核说明：
+                            <span data-original className="original-text">
+                              {m.reviewNote}
+                            </span>
+                          </p>
+                        ) : null}
+                        <div className="chat-message-actions">
+                          {m.mine ? (
+                            <button onClick={() => remove(m)}>删除自己的消息</button>
+                          ) : m.status === 'approved' ? (
+                            <button onClick={() => report(m)}>举报</button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="channel-empty">
+                    <span>◌</span>
+                    <h3>第一句话，留给你。</h3>
+                    <p>
+                      {topic.id === 'casual'
+                        ? '“我今天吃到了好好吃的东西。” 就从这种小事开始。'
+                        : '这个频道还没有公开留言。先留下你的声音、文字或照片吧。'}
+                    </p>
+                  </div>
                 )}
-                <input
-                  hidden
-                  type="file"
-                  ref={imageInput}
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => chooseImage(e.target.files?.[0])}
-                />
               </div>
-            ) : null}
-            <textarea
-              aria-label="频道消息"
-              maxLength={1000}
-              rows={3}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={
-                tab === 'text'
-                  ? topic.id === 'casual'
-                    ? '想说什么就说两句，轻松一点。'
-                    : '从这个话题开始，写下你想分享的事。'
-                  : tab === 'voice'
-                    ? '给声音加一句文字（可选）'
-                    : '给图片写一句说明（可选）'
-              }
-            />
-            <div className="composer-bottom">
-              <span>保持友善，不攻击、不引战。{body.length}/1000</span>
-              {user ? (
-                <button
-                  className="button primary small"
-                  disabled={sending || recording}
-                  onClick={send}
-                >
-                  {sending ? '正在发送…' : '发送到频道 →'}
-                </button>
-              ) : (
-                <button className="button primary small" onClick={onLogin}>
-                  登录后加入聊天
-                </button>
-              )}
+              <div className="channel-composer">
+                <div className="composer-tabs" role="tablist" aria-label="消息类型">
+                  {(['text', 'voice', 'image'] as const).map((t, i) => (
+                    <button
+                      key={t}
+                      role="tab"
+                      aria-selected={tab === t}
+                      className={tab === t ? 'selected' : ''}
+                      onClick={() => setKind(t)}
+                    >
+                      {['✎ 文字', '◌ 语音', '▧ 图片'][i]}
+                    </button>
+                  ))}
+                </div>
+                {tab === 'voice' ? (
+                  <div className="channel-recorder">
+                    <span className={recording ? 'record-dot' : ''} />
+                    <span>{durationLabel(recording ? seconds : duration)}</span>
+                    <button
+                      className="button outline small"
+                      onClick={() => (recording ? recorder.current?.stop() : record())}
+                    >
+                      {recording ? '结束录音' : blob ? '重新录音' : '录一段声音'}
+                    </button>
+                    <button
+                      className="text-button"
+                      disabled={recording}
+                      onClick={() => audioInput.current?.click()}
+                    >
+                      上传音频
+                    </button>
+                    {audioUrl && !recording ? (
+                      <audio
+                        controls
+                        src={audioUrl}
+                        onPlay={() => {
+                          document.querySelectorAll<HTMLAudioElement>('audio').forEach((a) => {
+                            if (a.src !== audioUrl) a.pause();
+                          });
+                        }}
+                      />
+                    ) : null}
+                    <input
+                      hidden
+                      type="file"
+                      ref={audioInput}
+                      accept="audio/*,.webm,.m4a,.wav,.mp3"
+                      onChange={(e) => chooseAudio(e.target.files?.[0])}
+                    />
+                  </div>
+                ) : null}
+                {tab === 'image' ? (
+                  <div className="channel-image-input">
+                    {imageUrl ? (
+                      <>
+                        <img src={imageUrl} alt="待发送图片预览" />
+                        <button className="text-button" onClick={() => setImage(null)}>
+                          移除图片
+                        </button>
+                      </>
+                    ) : (
+                      <button className="image-drop" onClick={() => imageInput.current?.click()}>
+                        ▧ 选择一张想分享的照片 <small>PNG / JPEG / WebP · 最多 5 MB</small>
+                      </button>
+                    )}
+                    <input
+                      hidden
+                      type="file"
+                      ref={imageInput}
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => chooseImage(e.target.files?.[0])}
+                    />
+                  </div>
+                ) : null}
+                <textarea
+                  aria-label="频道消息"
+                  maxLength={1000}
+                  rows={3}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder={
+                    tab === 'text'
+                      ? topic.id === 'casual'
+                        ? '想说什么就说两句，轻松一点。'
+                        : '从这个话题开始，写下你想分享的事。'
+                      : tab === 'voice'
+                        ? '给声音加一句文字（可选）'
+                        : '给图片写一句说明（可选）'
+                  }
+                />
+                <div className="composer-bottom">
+                  <span>保持友善，不攻击、不引战。{body.length}/1000</span>
+                  {user ? (
+                    <button
+                      className="button primary small"
+                      disabled={sending || recording}
+                      onClick={send}
+                    >
+                      {sending ? '正在发送…' : '发送到频道 →'}
+                    </button>
+                  ) : (
+                    <button className="button primary small" onClick={onLogin}>
+                      登录后加入聊天
+                    </button>
+                  )}
+                </div>
+                <p className="small-note">
+                  语音、文字与图片均先审核再公开。频道输入不会自动保存，请在离开前保留草稿。
+                </p>
+                {notice ? (
+                  <p className="channel-notice" role="status">
+                    {notice}
+                  </p>
+                ) : null}
+              </div>
             </div>
-            <p className="small-note">
-              语音、文字与图片均先审核再公开。频道输入不会自动保存，请在离开前保留草稿。
-            </p>
-            {notice ? (
-              <p className="channel-notice" role="status">
-                {notice}
-              </p>
-            ) : null}
+            <aside className="channel-sidebar">
+              <section>
+                <h3>{topic.id === 'casual' ? '随便聊，不必有结论' : '不知道说什么？'}</h3>
+                <p>{topic.prompt}</p>
+              </section>
+              <section>
+                <h3>这个频道的约定</h3>
+                <ul>
+                  <li>可以累，可以遇到困难，也可以求鼓励。</li>
+                  <li>不辱骂、不嘲讽、不制造对立。</li>
+                  <li>不发布消极诱导、广告或他人的隐私。</li>
+                  <li>图片与语音由审核员检查后公开。</li>
+                </ul>
+              </section>
+              {topic.id === 'infp' ? (
+                <section>
+                  <h3>把它当成轻松的小实验</h3>
+                  <p>人格标签只是聊天的起点，声音没有统一模板，也不能判断一个人的人格。</p>
+                </section>
+              ) : null}
+            </aside>
           </div>
-        </div>
-        <aside className="channel-sidebar">
-          <section>
-            <h3>{topic.id === 'casual' ? '随便聊，不必有结论' : '不知道说什么？'}</h3>
-            <p>{topic.prompt}</p>
-          </section>
-          <section>
-            <h3>这个频道的约定</h3>
-            <ul>
-              <li>可以累，可以遇到困难，也可以求鼓励。</li>
-              <li>不辱骂、不嘲讽、不制造对立。</li>
-              <li>不发布消极诱导、广告或他人的隐私。</li>
-              <li>图片与语音由审核员检查后公开。</li>
-            </ul>
-          </section>
-          {topic.id === 'infp' ? (
-            <section>
-              <h3>把它当成轻松的小实验</h3>
-              <p>人格标签只是聊天的起点，声音没有统一模板，也不能判断一个人的人格。</p>
-            </section>
-          ) : null}
-        </aside>
-      </div>
-    </section>
+        </section>
+      }
+    </LocalizedView>
   );
 }

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-const base = 'http://127.0.0.1:5173';
+const base = process.env.TEST_BASE_URL ?? 'http://127.0.0.1:5173';
+if (!['127.0.0.1', 'localhost'].includes(new URL(base).hostname))
+  throw Error('Local tests only');
 function wav(seconds) {
   const rate = 16000,
     len = Math.round(seconds * rate),

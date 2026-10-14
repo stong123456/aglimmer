@@ -1,4 +1,30 @@
 'use client';
+import { LocalizedView } from './preferences';
+import {
+  Play,
+  Pause,
+  Mic,
+  Heart,
+  Bookmark,
+  ArrowRight,
+  X,
+  Sun,
+  Headphones,
+  Leaf,
+  Clock,
+  Upload,
+  Download,
+  Shuffle,
+  Check,
+  Mail,
+  ArrowLeft,
+  Shield,
+  Trash2,
+} from 'lucide-react';
+import { usePreferences, PreferencesMenu, themeImages } from './preferences';
+import VoicePostcard from './voice-postcard';
+import { canMakePostcard } from '@/lib/postcard';
+import AvatarSettings from './avatar-settings';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
 import { podcastChapters, resumePosition } from '@/lib/podcast';
@@ -14,7 +40,7 @@ import { readDraft, writeDraft } from '@/lib/draft';
 import { makeZip, download } from '@/lib/zip';
 
 type View = 'wall' | 'inspiration' | 'archive' | 'studio' | 'admin' | 'about' | 'topic' | 'podcast';
-type User = { nickname: string; userId: string; admin: boolean };
+type User = { nickname: string; userId: string; admin: boolean; avatarUrl?: string | null };
 type Draft = {
   title: string;
   signature: string;
@@ -52,43 +78,31 @@ async function api(url: string, options?: RequestInit) {
   if (!r.ok) throw new Error(data.error ?? '暂时无法完成，请重试');
   return data;
 }
-const paths: Record<string, string> = {
-  play: 'M9 5l11 7-11 7z',
-  pause: 'M8 5v14M16 5v14',
-  mic: 'M9 5a3 3 0 016 0v7a3 3 0 01-6 0V5zm-3 6v1a6 6 0 0012 0v-1M12 18v4m-4 0h8',
-  heart:
-    'M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z',
-  save: 'M6 3h12v18l-6-4-6 4V3z',
-  arrow: 'M5 12h14m-6-6 6 6-6 6',
-  close: 'M6 6l12 12M6 18 18 6',
-  sun: 'M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2m12-12 2-2M18 12a6 6 0 11-12 0 6 6 0 0112 0z',
-  headphones: 'M3 14v-3a9 9 0 0118 0v3M3 12h4v8H3zM17 12h4v8h-4z',
-  leaf: 'M20 3C7 2 2 8 5 15s14 5 15-12zM5 20 15 10',
-  clock: 'M12 7v5l3 2M22 12a10 10 0 11-20 0 10 10 0 0120 0z',
-  upload: 'M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5',
-  download: 'M12 3v13m-5-5 5 5 5-5M4 17v4h16v-4',
-  shuffle: 'M3 5h3l12 14h3m-4-4 4 4-4 4M3 19h3L18 5h3m-4-4 4 4-4 4',
-  check: 'M4 12l5 5L20 6',
-  mail: 'M3 5h18v14H3zM3 5l9 8 9-8',
-  back: 'M19 12H5m6-6-6 6 6 6',
-  shield: 'M12 2l9 4v6c0 6-9 10-9 10S3 18 3 12V6l9-4z',
-  trash: 'M3 6h18M9 6V3h6v3M6 6v15h12V6M10 10v7m4-7v7',
+const iconMap = {
+  play: Play,
+  pause: Pause,
+  mic: Mic,
+  heart: Heart,
+  save: Bookmark,
+  arrow: ArrowRight,
+  close: X,
+  sun: Sun,
+  headphones: Headphones,
+  leaf: Leaf,
+  clock: Clock,
+  upload: Upload,
+  download: Download,
+  shuffle: Shuffle,
+  check: Check,
+  mail: Mail,
+  back: ArrowLeft,
+  shield: Shield,
+  trash: Trash2,
 };
 function Icon({ name, size = 20, fill = false }: { name: string; size?: number; fill?: boolean }) {
+  const Component = iconMap[name as keyof typeof iconMap] || Sun;
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={fill ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={paths[name] ?? paths.sun} />
-    </svg>
+    <Component size={size} strokeWidth={1.5} fill={fill ? 'currentColor' : 'none'} aria-hidden />
   );
 }
 function Wave({ progress = 0, active = false }: { progress?: number; active?: boolean }) {
@@ -108,16 +122,20 @@ function Wave({ progress = 0, active = false }: { progress?: number; active?: bo
   );
 }
 function Landscape() {
+  const { theme } = usePreferences();
   return (
     <div className="landscape" aria-hidden="true">
-      <img src="/images/landscape.png" alt="" />
+      <img src={themeImages[theme]} alt="" />
       <span className="landscape-fade" />
     </div>
   );
 }
 
 export default function VoiceApp() {
+  const { locale, t, theme } = usePreferences();
   const [authOpen, setAuthOpen] = useState(false);
+  const [postcard, setPostcard] = useState<Voice | null>(null);
+  const [studioStep, setStudioStep] = useState(1);
   const [sleepMinutes, setSleepMinutes] = useState(0);
   const sleepDeadline = useRef(0);
   const progressWrite = useRef(0);
@@ -279,6 +297,7 @@ export default function VoiceApp() {
     setView(v);
     setSelected(null);
     setSubmitMessage('');
+    if (v === 'studio') setStudioStep(1);
     const url = new URL(location.href);
     url.search = '';
     if (v !== 'wall') url.searchParams.set('view', v);
@@ -604,7 +623,7 @@ export default function VoiceApp() {
       notify('登录后可以举报，我们会认真处理。');
       return;
     }
-    const reason = window.prompt('这段声音有什么问题？（最多 300 字）');
+    const reason = window.prompt(t('这段声音有什么问题？（最多 300 字）'));
     if (!reason) return;
     try {
       await api(`/api/voices/${v.id}`, {
@@ -632,7 +651,7 @@ export default function VoiceApp() {
       return;
     }
     try {
-      if (blob && !window.confirm('已有一段草稿。开始新录音会替换它，继续吗？')) return;
+      if (blob && !window.confirm(t('已有一段草稿。开始新录音会替换它，继续吗？'))) return;
       audioRef.current?.pause();
       window.speechSynthesis?.cancel();
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -694,7 +713,7 @@ export default function VoiceApp() {
       notify(`请选择 ${draft.topic === 'podcast' ? 30 : 10} MB 以内的音频文件。`);
       return;
     }
-    if (blob && !window.confirm('上传会替换当前录音草稿，继续吗？')) return;
+    if (blob && !window.confirm(t('上传会替换当前录音草稿，继续吗？'))) return;
     const url = URL.createObjectURL(file),
       a = new Audio(url);
     try {
@@ -784,7 +803,7 @@ export default function VoiceApp() {
     }
   }
   async function remove(v: Voice) {
-    if (!window.confirm('删除后无法恢复。建议先导出备份，确定删除这段声音吗？')) return;
+    if (!window.confirm(t('删除后无法恢复。建议先导出备份，确定删除这段声音吗？'))) return;
     try {
       await api(`/api/voices/${v.id}`, { method: 'DELETE' });
       if (playing?.id === v.id) {
@@ -834,6 +853,17 @@ export default function VoiceApp() {
         size = meta.length,
         part = 1;
       const allMedia = [
+        ...(data.profile?.avatarUrl
+          ? [
+              {
+                id: 'avatar',
+                folder: 'profile',
+                audioUrl: data.profile.avatarUrl,
+                mime: data.profile.avatarMime,
+                recorded_at: data.exportedAt.slice(0, 10),
+              },
+            ]
+          : []),
         ...data.voices.map((v: any) => ({ ...v, folder: 'audio' })),
         ...(data.messages ?? [])
           .filter((m: any) => m.kind === 'image')
@@ -926,7 +956,9 @@ export default function VoiceApp() {
       <article className={`voice-card ${active ? 'is-current' : ''}`} key={v.id}>
         <div className="card-top">
           <button className="title-button" onClick={() => setSelected(v)}>
-            {v.title}
+            <span data-original className="original-text">
+              {v.title}
+            </span>
           </button>
           <button
             className="icon-button dots"
@@ -941,7 +973,9 @@ export default function VoiceApp() {
             <Icon name="leaf" size={21} />
           </span>
           <span>
-            {v.signature}
+            <span data-original className="original-text">
+              {v.signature}
+            </span>
             <span className="author-date"> · {dateLabel(v.recordedAt)}</span>
           </span>
         </div>
@@ -989,7 +1023,14 @@ export default function VoiceApp() {
               {v.futureYear ? <span>写给 {v.futureYear} 年</span> : null}
               {v.parentId ? <span>未来回声</span> : null}
             </div>
-            {v.reviewNote ? <p className="review-note">审核说明：{v.reviewNote}</p> : null}
+            {v.reviewNote ? (
+              <p className="review-note">
+                审核说明：
+                <span data-original className="original-text">
+                  {v.reviewNote}
+                </span>
+              </p>
+            ) : null}
             <div className="archive-actions">
               <button onClick={() => reply(v)}>录一段回应</button>
               <button
@@ -1038,1285 +1079,1463 @@ export default function VoiceApp() {
   );
 
   return (
-    <>
-      <header className="header">
-        <button className="brand" onClick={() => navigate('wall')}>
-          <Icon name="sun" size={35} />
-          <span>
-            一点光<small className="brand-english">A Glimmer</small>
-          </span>
-        </button>
-        <nav aria-label="主导航">
-          {(['wall', 'podcast', 'inspiration', 'archive'] as View[]).map((v, i) => (
-            <button
-              key={v}
-              className={view === v || (view === 'topic' && v === 'wall') ? 'current' : ''}
-              onClick={() => navigate(v)}
-            >
-              {['声音墙', '慢慢听', '灵感信箱', '我的声音'][i]}
+    <LocalizedView>
+      {
+        <>
+          <header className="header">
+            <button className="brand" onClick={() => navigate('wall')}>
+              <Icon name="sun" size={35} />
+              <span>
+                一点光
+                <small className="brand-english">
+                  {locale === 'en' ? 'Voices & time' : 'A Glimmer'}
+                </small>
+              </span>
             </button>
-          ))}
-        </nav>
-        <div className="header-actions">
-          {user ? (
-            <button
-              className="user-button"
-              onClick={() => navigate('archive')}
-              aria-label="打开我的账户"
-            >
-              {user.nickname.slice(0, 1)}
-            </button>
-          ) : (
-            <button className="login-link" onClick={openAuth}>
-              登录 / 注册
-            </button>
-          )}
-          <button className="button outline small" onClick={() => navigate('studio')}>
-            <Icon name="mic" size={17} />
-            <span>留下一点光</span>
-          </button>
-        </div>
-      </header>
-      <main>
-        {view === 'wall' ? (
-          <>
-            <section className="hero">
-              <div className="hero-copy">
-                <h1>
-                  每个声音里，
-                  <br />
-                  都有一点光。
-                </h1>
-                <p className="hero-slogan" lang="en">
-                  A little light, in every voice.
-                </p>
-                <p>
-                  在这里，听见陌生人的善意，
-                  <br />
-                  也留下此刻的你。
-                </p>
-                <div className="hero-actions">
-                  <button className="button primary" onClick={randomPlay}>
-                    <Icon name="play" fill size={18} />
-                    听一段给我的声音
-                  </button>
-                  <button className="button outline" onClick={() => navigate('studio')}>
-                    <Icon name="mic" size={19} />
-                    留下我的声音
-                  </button>
-                </div>
-              </div>
-              <Landscape />
-            </section>
-            <section className="wall-section">
-              <GentleListening
-                voices={voices}
-                playingId={playing?.id}
-                onPlay={(v) => void play(v)}
-              />
-              <div className="podcast-invite">
-                <div>
-                  <span className="handwritten">今晚，慢慢听</span>
-                  <h2>让一个故事，陪你结束今天。</h2>
-                  <p>长声音与睡前小故事，留给不用赶路的时间。</p>
-                </div>
-                <button className="button outline" onClick={() => navigate('podcast')}>
-                  打开故事书架 →
-                </button>
-              </div>
-              <section className="topic-discovery" aria-label="主题公共频道">
-                <div className="section-heading">
-                  <div>
-                    <h2>找一个话题，遇见同频的人</h2>
-                    <p className="topic-intro">
-                      有时需要一句鼓励，有时只想随便聊聊。挑一个频道坐坐。
-                    </p>
-                  </div>
-                  <span className="topic-types">语音 / 文字 / 图片</span>
-                </div>
-                <div className="topic-grid">
-                  {TOPICS.map((t) => (
-                    <article key={t.id} className={`topic-card theme-${t.color}`}>
-                      <div className="topic-card-top">
-                        <span className="topic-label">
-                          <Icon name={t.icon} size={16} />
-                          {t.label}
-                        </span>
-                        <span className="topic-count">
-                          {topicCounts === null
-                            ? '正在打开频道…'
-                            : topicCounts[t.id]
-                              ? `${topicCounts[t.id]} 条公开留言`
-                              : '等你来打个招呼'}
-                        </span>
-                      </div>
-                      <button className="topic-title" onClick={() => openTopic(t)}>
-                        {t.question}
-                      </button>
-                      <p>{t.description}</p>
-                      <div className="topic-card-bottom">
-                        <span>{t.name}</span>
-                        <button aria-label={`进入${t.name}`} onClick={() => openTopic(t)}>
-                          进入频道 <Icon name="arrow" size={17} />
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                {topicError ? (
-                  <p className="small-note" role="status">
-                    {topicError}
-                  </p>
-                ) : null}
-              </section>
-              <div className="mood-row">
-                <h2>今天的你，需要哪一种陪伴？</h2>
-                <div className="chips">
-                  <button className={!mood ? 'selected' : ''} onClick={() => setMood('')}>
-                    全部
-                  </button>
-                  {MOODS.map((m) => (
-                    <button
-                      key={m}
-                      className={mood === m ? 'selected' : ''}
-                      onClick={() => {
-                        setMood(m);
-                        if (m === '给未来的我') setMode('all');
-                      }}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="section-heading">
-                <h2>为你留的声音</h2>
-                <div className="wall-tools">
-                  <input
-                    aria-label="搜索声音"
-                    placeholder="找一句想听的话"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                  <select
-                    aria-label="声音列表"
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value)}
-                  >
-                    <option value="featured">精选 · 慢慢听</option>
-                    <option value="all">全部公开声音</option>
-                  </select>
-                </div>
-              </div>
-              {error ? (
-                <div className="empty">
-                  <h3>声音暂时还没到达</h3>
-                  <p>{error}</p>
-                  <button className="button outline" onClick={loadWall}>
-                    再试一次
-                  </button>
-                </div>
-              ) : loading ? (
-                <div className="loading" role="status">
-                  正在寻找一点光…
-                </div>
-              ) : filtered.length ? (
-                <div className="voice-grid">{filtered.map((v) => card(v))}</div>
-              ) : (
-                <div className="empty">
-                  <Icon name="leaf" size={30} />
-                  <h3>这一页，等你留下一点光</h3>
-                  <p>
-                    {query ? '换一个关键词试试。' : '这个心情暂时还没有声音。也许你会是第一个。'}
-                  </p>
-                  <button className="button outline" onClick={() => navigate('studio')}>
-                    留下我的声音
-                  </button>
-                </div>
-              )}
-              {voices.some((v) => v.demo) ? (
-                <p className="demo-note">
-                  当前为 AI 示例朗读，分别采用温柔女声、沉稳男声与清亮少年声。真实投稿经审核后展示。
-                </p>
-              ) : null}
-              <section className="future-banner">
-                <div>
-                  <h2>给十年后的你，留一封声音信。</h2>
-                  <p>此刻的心情、困惑、期待……让未来的你，听见现在的自己。</p>
-                </div>
+            <nav aria-label="主导航">
+              {(['wall', 'podcast', 'inspiration', 'archive'] as View[]).map((v, i) => (
                 <button
-                  className="button primary"
-                  onClick={() => {
-                    update('mood', '给未来的我');
-                    update('futureYear', String(new Date().getFullYear() + 10));
-                    navigate('studio');
-                  }}
+                  key={v}
+                  className={view === v || (view === 'topic' && v === 'wall') ? 'current' : ''}
+                  onClick={() => navigate(v)}
                 >
-                  <Icon name="mail" />
-                  写给未来
-                </button>
-                <div className="envelope" aria-hidden="true">
-                  <Icon name="sun" size={40} />
-                </div>
-              </section>
-              <div className="quiet-note">
-                <Icon name="headphones" size={18} />
-                <span>不必很会表达。真实的声音，就已经很珍贵。</span>
-                <button onClick={() => navigate('about')}>
-                  关于这里 <Icon name="arrow" size={16} />
-                </button>
-              </div>
-            </section>
-          </>
-        ) : null}
-        {view === 'topic' ? (
-          getTopic(topicId) ? (
-            <TopicChannel
-              key={topicId}
-              topic={getTopic(topicId)!}
-              user={user}
-              onLogin={openAuth}
-              onBack={() => navigate('wall')}
-              onPlay={(v) => {
-                void play(v);
-              }}
-              onOpen={setSelected}
-              playing={playing}
-              isPlaying={isPlaying}
-            />
-          ) : (
-            <section className="page-section empty">
-              <h2>选择一个想聊的话题</h2>
-              <button className="button outline" onClick={() => navigate('wall')}>
-                回到首页选频道
-              </button>
-            </section>
-          )
-        ) : null}
-        {view === 'podcast' ? (
-          <PodcastShelf
-            onPlay={(v) => void play(v)}
-            onCreate={createPodcast}
-            onDetails={setSelected}
-            playingId={playing?.id}
-            timer={sleepMinutes}
-            onTimer={(minutes) => {
-              sleepDeadline.current = Date.now() + minutes * 60000;
-              setSleepMinutes(minutes);
-            }}
-          />
-        ) : null}
-        {view === 'inspiration' ? (
-          <section className="page-section">
-            <div className="page-heading">
-              <h1>灵感信箱</h1>
-              <p>不用讲大道理。从一件小事、一段经历、一句真心话开始。</p>
-            </div>
-            <div className="inspiration-feature">
-              <div>
-                <span className="handwritten">给不知道说什么的你</span>
-                <h2>
-                  想象有一个人，
-                  <br />
-                  今天过得不太顺。
-                </h2>
-                <p>
-                  你愿意用一分钟，对他说些什么？
-                  <br />
-                  不用让他马上振作，让他知道有人理解就好。
-                </p>
-                <button
-                  className="button primary"
-                  onClick={() => {
-                    const i = (promptIndex + 1) % PROMPTS.length;
-                    setPromptIndex(i);
-                    notify(`抽到一张：${PROMPTS[i].title}`);
-                  }}
-                >
-                  <Icon name="shuffle" />
-                  抽一张灵感卡
-                </button>
-              </div>
-              <div className="prompt-paper">
-                <Icon name="mail" size={30} />
-                <h3>{PROMPTS[promptIndex].title}</h3>
-                <p>{PROMPTS[promptIndex].text}</p>
-                <button className="text-button" onClick={() => choosePrompt(promptIndex)}>
-                  用这张卡开始 <Icon name="arrow" />
-                </button>
-              </div>
-            </div>
-            <div className="section-heading">
-              <h2>总有一句话，适合此刻的你</h2>
-            </div>
-            <div className="prompt-grid">
-              {PROMPTS.map((p, i) => (
-                <button className="prompt-card" key={p.title} onClick={() => choosePrompt(i)}>
-                  <span className="prompt-number">0{i + 1}</span>
-                  <h3>{p.title}</h3>
-                  <p>{p.text}</p>
-                  <span className="text-button">
-                    从这里开始 <Icon name="arrow" size={17} />
-                  </span>
+                  {['声音墙', '慢慢听', '灵感信箱', '我的声音'][i]}
                 </button>
               ))}
-            </div>
-            <div className="guideline">
-              <Icon name="leaf" />
-              <p>
-                <strong>把素材变成你自己的话。</strong>
-                分享具体经历，不必承诺“一切都会好”。允许难过，也尊重每个人的节奏。引用别人的文字时，请留下出处。
-              </p>
-            </div>
-          </section>
-        ) : null}
-        {view === 'studio' ? (
-          <section className="page-section">
-            <div className="page-heading">
-              <button className="text-button" onClick={() => navigate('wall')}>
-                <Icon name="back" size={17} />
-                回到声音墙
+            </nav>
+            <div className="header-actions">
+              <PreferencesMenu />
+              {user ? (
+                <button
+                  className="user-button"
+                  onClick={() => navigate('archive')}
+                  aria-label="打开我的账户"
+                >
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={t('头像')} />
+                  ) : (
+                    <span data-original>{user.nickname.slice(0, 1)}</span>
+                  )}
+                </button>
+              ) : (
+                <button className="login-link" onClick={openAuth}>
+                  登录 / 注册
+                </button>
+              )}
+              <button className="button outline small" onClick={() => navigate('studio')}>
+                <Icon name="mic" size={17} />
+                <span>留下一点光</span>
               </button>
-              <h1>{draft.topic === 'podcast' ? '分享一段长声音' : '留下此刻的你'}</h1>
-              <p>今天有人会听见，未来的你也会。</p>
             </div>
-            {submitMessage ? (
-              <div className="success-panel" role="status">
-                <Icon name="check" size={40} />
-                <h2>你的一点光，已经留下。</h2>
-                <p>{submitMessage}</p>
-                <button className="button primary" onClick={() => navigate('archive')}>
-                  去我的声音档案
-                </button>
-                <button className="text-button" onClick={() => setSubmitMessage('')}>
-                  再留一段
-                </button>
-              </div>
-            ) : (
-              <div className="studio-grid">
-                <aside className="studio-inspiration">
-                  <Icon name="mail" size={27} />
-                  <h2>灵感信箱</h2>
-                  <p>
-                    不知道说什么？
-                    <br />
-                    从一句话开始。
-                  </p>
-                  {PROMPTS.slice(0, 4).map((p, i) => (
+          </header>
+          <main>
+            {view === 'wall' ? (
+              <>
+                <section className="hero">
+                  <div className="hero-copy">
+                    <h1>
+                      每个声音里，
+                      <br />
+                      都有一点光。
+                    </h1>
+                    <p className="hero-slogan" lang="en">
+                      A little light, in every voice.
+                    </p>
+                    <p>
+                      在这里，听见陌生人的善意，
+                      <br />
+                      也留下此刻的你。
+                    </p>
+                    {voices[0] ? (
+                      <div className="hero-feature">
+                        <button
+                          className="play-button"
+                          aria-label={t('播放')}
+                          onClick={() => void play(voices[0])}
+                        >
+                          <Icon
+                            name={playing?.id === voices[0].id && isPlaying ? 'pause' : 'play'}
+                            fill
+                          />
+                        </button>
+                        <div>
+                          <strong data-original>{voices[0].title}</strong>
+                          <small>
+                            <span data-original>{voices[0].signature}</span> ·{' '}
+                            {dateLabel(voices[0].recordedAt)} ·{' '}
+                            {voices[0].demo ? 'AI 示例朗读' : durationLabel(voices[0].duration)}
+                          </small>
+                        </div>
+                      </div>
+                    ) : null}
+                    <div className="hero-actions">
+                      <button className="button primary" onClick={randomPlay}>
+                        <Icon name="play" fill size={18} />
+                        听一段给我的声音
+                      </button>
+                      <button className="button outline" onClick={() => navigate('studio')}>
+                        <Icon name="mic" size={19} />
+                        留下我的声音
+                      </button>
+                    </div>
+                  </div>
+                  <Landscape />
+                </section>
+                <section className="wall-section">
+                  {voices[0] && canMakePostcard(voices[0]) ? (
+                    <div className="postcard-invite">
+                      <div>
+                        <span className="handwritten">声音明信片</span>
+                        <h2>让一句话，有一个值得收藏的模样。</h2>
+                        <p>署名、日期和声音，送给此刻的自己。</p>
+                      </div>
+                      <button className="button outline" onClick={() => setPostcard(voices[0])}>
+                        制作声音明信片 <Icon name="arrow" size={18} />
+                      </button>
+                    </div>
+                  ) : null}
+                  <GentleListening
+                    voices={voices}
+                    playingId={playing?.id}
+                    onPlay={(v) => void play(v)}
+                  />
+                  <div className="podcast-invite">
+                    <div>
+                      <span className="handwritten">今晚，慢慢听</span>
+                      <h2>让一个故事，陪你结束今天。</h2>
+                      <p>长声音与睡前小故事，留给不用赶路的时间。</p>
+                    </div>
+                    <button className="button outline" onClick={() => navigate('podcast')}>
+                      打开故事书架 →
+                    </button>
+                  </div>
+                  <section className="topic-discovery" aria-label="主题公共频道">
+                    <div className="section-heading">
+                      <div>
+                        <h2>找一个话题，遇见同频的人</h2>
+                        <p className="topic-intro">
+                          有时需要一句鼓励，有时只想随便聊聊。挑一个频道坐坐。
+                        </p>
+                      </div>
+                      <span className="topic-types">语音 / 文字 / 图片</span>
+                    </div>
+                    <div className="topic-grid">
+                      {TOPICS.map((t) => (
+                        <article key={t.id} className={`topic-card theme-${t.color}`}>
+                          <div className="topic-card-top">
+                            <span className="topic-label">
+                              <Icon name={t.icon} size={16} />
+                              {t.label}
+                            </span>
+                            <span className="topic-count">
+                              {topicCounts === null
+                                ? '正在打开频道…'
+                                : topicCounts[t.id]
+                                  ? `${topicCounts[t.id]} 条公开留言`
+                                  : '等你来打个招呼'}
+                            </span>
+                          </div>
+                          <button className="topic-title" onClick={() => openTopic(t)}>
+                            {t.question}
+                          </button>
+                          <p>{t.description}</p>
+                          <div className="topic-card-bottom">
+                            <span>{t.name}</span>
+                            <button aria-label={`进入${t.name}`} onClick={() => openTopic(t)}>
+                              进入频道 <Icon name="arrow" size={17} />
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                    {topicError ? (
+                      <p className="small-note" role="status">
+                        {topicError}
+                      </p>
+                    ) : null}
+                  </section>
+                  <div className="mood-row">
+                    <h2>今天的你，需要哪一种陪伴？</h2>
+                    <div className="chips">
+                      <button className={!mood ? 'selected' : ''} onClick={() => setMood('')}>
+                        全部
+                      </button>
+                      {MOODS.map((m) => (
+                        <button
+                          key={m}
+                          className={mood === m ? 'selected' : ''}
+                          onClick={() => {
+                            setMood(m);
+                            if (m === '给未来的我') setMode('all');
+                          }}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="section-heading">
+                    <h2>为你留的声音</h2>
+                    <div className="wall-tools">
+                      <input
+                        aria-label="搜索声音"
+                        placeholder="找一句想听的话"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                      />
+                      <select
+                        aria-label="声音列表"
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value)}
+                      >
+                        <option value="featured">精选 · 慢慢听</option>
+                        <option value="all">全部公开声音</option>
+                      </select>
+                    </div>
+                  </div>
+                  {error ? (
+                    <div className="empty">
+                      <h3>声音暂时还没到达</h3>
+                      <p>{error}</p>
+                      <button className="button outline" onClick={loadWall}>
+                        再试一次
+                      </button>
+                    </div>
+                  ) : loading ? (
+                    <div className="loading" role="status">
+                      正在寻找一点光…
+                    </div>
+                  ) : filtered.length ? (
+                    <div className="voice-grid">{filtered.map((v) => card(v))}</div>
+                  ) : (
+                    <div className="empty">
+                      <Icon name="leaf" size={30} />
+                      <h3>这一页，等你留下一点光</h3>
+                      <p>
+                        {query
+                          ? '换一个关键词试试。'
+                          : '这个心情暂时还没有声音。也许你会是第一个。'}
+                      </p>
+                      <button className="button outline" onClick={() => navigate('studio')}>
+                        留下我的声音
+                      </button>
+                    </div>
+                  )}
+                  {voices.some((v) => v.demo) ? (
+                    <p className="demo-note">
+                      当前为 AI
+                      示例朗读，分别采用温柔女声、沉稳男声与清亮少年声。真实投稿经审核后展示。
+                    </p>
+                  ) : null}
+                  <section className="future-banner">
+                    <div>
+                      <h2>给十年后的你，留一封声音信。</h2>
+                      <p>此刻的心情、困惑、期待……让未来的你，听见现在的自己。</p>
+                    </div>
                     <button
-                      key={p.title}
-                      className={`studio-prompt ${i === promptIndex ? 'chosen' : ''}`}
+                      className="button primary"
                       onClick={() => {
-                        setPromptIndex(i);
-                        update('mood', p.mood);
+                        update('mood', '给未来的我');
+                        update('futureYear', String(new Date().getFullYear() + 10));
+                        navigate('studio');
                       }}
                     >
+                      <Icon name="mail" />
+                      写给未来
+                    </button>
+                    <div className="envelope" aria-hidden="true">
+                      <Icon name="sun" size={40} />
+                    </div>
+                  </section>
+                  <div className="quiet-note">
+                    <Icon name="headphones" size={18} />
+                    <span>不必很会表达。真实的声音，就已经很珍贵。</span>
+                    <button onClick={() => navigate('about')}>
+                      关于这里 <Icon name="arrow" size={16} />
+                    </button>
+                  </div>
+                </section>
+              </>
+            ) : null}
+            {view === 'topic' ? (
+              getTopic(topicId) ? (
+                <TopicChannel
+                  key={topicId}
+                  topic={getTopic(topicId)!}
+                  user={user}
+                  onLogin={openAuth}
+                  onBack={() => navigate('wall')}
+                  onPlay={(v) => {
+                    void play(v);
+                  }}
+                  onOpen={setSelected}
+                  playing={playing}
+                  isPlaying={isPlaying}
+                />
+              ) : (
+                <section className="page-section empty">
+                  <h2>选择一个想聊的话题</h2>
+                  <button className="button outline" onClick={() => navigate('wall')}>
+                    回到首页选频道
+                  </button>
+                </section>
+              )
+            ) : null}
+            {view === 'podcast' ? (
+              <PodcastShelf
+                onPlay={(v) => void play(v)}
+                onCreate={createPodcast}
+                onDetails={setSelected}
+                playingId={playing?.id}
+                timer={sleepMinutes}
+                onTimer={(minutes) => {
+                  sleepDeadline.current = Date.now() + minutes * 60000;
+                  setSleepMinutes(minutes);
+                }}
+              />
+            ) : null}
+            {view === 'inspiration' ? (
+              <section className="page-section">
+                <div className="page-heading">
+                  <h1>灵感信箱</h1>
+                  <p>不用讲大道理。从一件小事、一段经历、一句真心话开始。</p>
+                </div>
+                <div className="inspiration-feature">
+                  <div>
+                    <span className="handwritten">给不知道说什么的你</span>
+                    <h2>
+                      想象有一个人，
+                      <br />
+                      今天过得不太顺。
+                    </h2>
+                    <p>
+                      你愿意用一分钟，对他说些什么？
+                      <br />
+                      不用让他马上振作，让他知道有人理解就好。
+                    </p>
+                    <button
+                      className="button primary"
+                      onClick={() => {
+                        const i = (promptIndex + 1) % PROMPTS.length;
+                        setPromptIndex(i);
+                        notify(`抽到一张：${PROMPTS[i].title}`);
+                      }}
+                    >
+                      <Icon name="shuffle" />
+                      抽一张灵感卡
+                    </button>
+                  </div>
+                  <div className="prompt-paper">
+                    <Icon name="mail" size={30} />
+                    <h3>{PROMPTS[promptIndex].title}</h3>
+                    <p>{PROMPTS[promptIndex].text}</p>
+                    <button className="text-button" onClick={() => choosePrompt(promptIndex)}>
+                      用这张卡开始 <Icon name="arrow" />
+                    </button>
+                  </div>
+                </div>
+                <div className="section-heading">
+                  <h2>总有一句话，适合此刻的你</h2>
+                </div>
+                <div className="prompt-grid">
+                  {PROMPTS.map((p, i) => (
+                    <button className="prompt-card" key={p.title} onClick={() => choosePrompt(i)}>
+                      <span className="prompt-number">0{i + 1}</span>
                       <h3>{p.title}</h3>
                       <p>{p.text}</p>
+                      <span className="text-button">
+                        从这里开始 <Icon name="arrow" size={17} />
+                      </span>
                     </button>
                   ))}
-                  <p className="small-note">
-                    这些是表达的起点。
-                    <br />
-                    你的经历，才是最好的素材。
+                </div>
+                <div className="guideline">
+                  <Icon name="leaf" />
+                  <p>
+                    <strong>把素材变成你自己的话。</strong>
+                    分享具体经历，不必承诺“一切都会好”。允许难过，也尊重每个人的节奏。引用别人的文字时，请留下出处。
                   </p>
-                </aside>
-                <div className="studio-panel">
-                  <div className="panel-heading">
-                    <h2>录音工作台</h2>
-                    <span>01 / 留下声音</span>
+                </div>
+              </section>
+            ) : null}
+            {view === 'studio' ? (
+              <section className="page-section">
+                <div className="page-heading">
+                  <button className="text-button" onClick={() => navigate('wall')}>
+                    <Icon name="back" size={17} />
+                    回到声音墙
+                  </button>
+                  <h1>{draft.topic === 'podcast' ? '分享一段长声音' : '留下此刻的你'}</h1>
+                  <p>今天有人会听见，未来的你也会。</p>
+                </div>
+                {submitMessage ? (
+                  <div className="success-panel" role="status">
+                    <Icon name="check" size={40} />
+                    <h2>你的一点光，已经留下。</h2>
+                    <p>{submitMessage}</p>
+                    <button className="button primary" onClick={() => navigate('archive')}>
+                      去我的声音档案
+                    </button>
+                    <button className="text-button" onClick={() => setSubmitMessage('')}>
+                      再留一段
+                    </button>
                   </div>
-                  {draft.parentId ? (
-                    <p className="reply-note">这段回应会与当年的声音并排保存在你的档案里。</p>
-                  ) : null}
-                  <div className="recording-guide">
-                    <strong>
-                      {draft.topic === 'podcast' ? '让故事有一个温柔的起点' : '不需要一遍说好'}
-                    </strong>
+                ) : (
+                  <>
+                    <div className="studio-steps">
+                      <button
+                        className={studioStep === 1 ? 'selected' : ''}
+                        onClick={() => setStudioStep(1)}
+                      >
+                        1 · 录音与试听
+                      </button>
+                      <button
+                        className={studioStep === 2 ? 'selected' : ''}
+                        disabled={!blob || recording}
+                        onClick={() => {
+                          if (blob) setStudioStep(2);
+                          else notify('录好后进入下一步');
+                        }}
+                      >
+                        2 · 署名与可见范围
+                      </button>
+                    </div>
+                    <div className="studio-grid" data-step={studioStep}>
+                      <aside className="studio-inspiration">
+                        <Icon name="mail" size={27} />
+                        <h2>灵感信箱</h2>
+                        <p>
+                          不知道说什么？
+                          <br />
+                          从一句话开始。
+                        </p>
+                        {PROMPTS.slice(0, 4).map((p, i) => (
+                          <button
+                            key={p.title}
+                            className={`studio-prompt ${i === promptIndex ? 'chosen' : ''}`}
+                            onClick={() => {
+                              setPromptIndex(i);
+                              update('mood', p.mood);
+                            }}
+                          >
+                            <h3>{p.title}</h3>
+                            <p>{p.text}</p>
+                          </button>
+                        ))}
+                        <p className="small-note">
+                          这些是表达的起点。
+                          <br />
+                          你的经历，才是最好的素材。
+                        </p>
+                      </aside>
+                      <div className="studio-panel">
+                        <div className="panel-heading">
+                          <h2>录音工作台</h2>
+                          <span>01 / 留下声音</span>
+                        </div>
+                        {draft.parentId ? (
+                          <p className="reply-note">这段回应会与当年的声音并排保存在你的档案里。</p>
+                        ) : null}
+                        <div className="recording-guide">
+                          <strong>
+                            {draft.topic === 'podcast'
+                              ? '让故事有一个温柔的起点'
+                              : '不需要一遍说好'}
+                          </strong>
+                          <p>
+                            {draft.topic === 'podcast'
+                              ? '先介绍故事，再慢慢展开，最后留一句晚安。建议提前录好并试听，控制音量，注明原创或朗读授权。'
+                              : '先想一个具体的人，说一件真实的小事，再留下一句陪伴。录好可以试听、重录，草稿会留在当前浏览器。'}
+                          </p>
+                        </div>
+                        <div className={`recorder ${recording ? 'recording' : ''}`}>
+                          <div className="mic-orb">
+                            <Icon name="mic" size={33} />
+                          </div>
+                          <div className="record-time">
+                            {durationLabel(recording ? recordSeconds : duration)}
+                          </div>
+                          <p>
+                            {recording
+                              ? '正在听你说。准备好了，就按结束。'
+                              : blob
+                                ? '已经录好，先听听自己的声音。'
+                                : draft.topic === 'podcast'
+                                  ? '请上传 1–30 分钟、30 MB 以内的音频。'
+                                  : '最长 90 秒，真实的声音就很好。'}
+                          </p>
+                          {blobUrl && !recording ? (
+                            <audio
+                              controls
+                              src={blobUrl}
+                              preload="metadata"
+                              aria-label="试听录音草稿"
+                              onPlay={() => {
+                                audioRef.current?.pause();
+                                window.speechSynthesis?.cancel();
+                                setIsPlaying(false);
+                              }}
+                            />
+                          ) : null}
+                          <div className="record-actions">
+                            <button
+                              className={`button ${recording ? 'record-stop' : 'primary'}`}
+                              disabled={draft.topic === 'podcast'}
+                              onClick={recording ? stopRecording : startRecording}
+                            >
+                              <Icon name={recording ? 'pause' : 'mic'} />
+                              {draft.topic === 'podcast'
+                                ? '长内容请上传录音'
+                                : recording
+                                  ? '结束录音'
+                                  : blob
+                                    ? '重新录音'
+                                    : '开始录音'}
+                            </button>
+                            <button
+                              className="text-button"
+                              disabled={recording}
+                              onClick={() => uploadRef.current?.click()}
+                            >
+                              <Icon name="upload" size={17} />
+                              上传已有录音
+                            </button>
+                          </div>
+                          <input
+                            hidden
+                            ref={uploadRef}
+                            type="file"
+                            accept="audio/*,.webm,.m4a,.mp4,.mp3,.wav,.ogg"
+                            onChange={(e) => upload(e.target.files?.[0])}
+                          />
+                          {blob ? (
+                            <button
+                              className="text-button draft-download"
+                              onClick={() =>
+                                download(
+                                  blob,
+                                  `一点光-草稿.${blob.type.includes('mp4') ? 'm4a' : blob.type.includes('wav') ? 'wav' : blob.type.includes('mpeg') ? 'mp3' : blob.type.includes('ogg') ? 'ogg' : 'webm'}`,
+                                )
+                              }
+                            >
+                              下载这段草稿
+                            </button>
+                          ) : null}
+                        </div>
+                        <button
+                          className="button primary studio-next"
+                          disabled={!blob || recording}
+                          onClick={() => setStudioStep(2)}
+                        >
+                          下一步，保存这段声音 <Icon name="arrow" size={18} />
+                        </button>
+                        <div className="panel-heading form-heading">
+                          <h2>给声音一个时间坐标</h2>
+                          <span>02 / 记住此刻</span>
+                        </div>
+                        <div className="form-grid">
+                          <label className="full">
+                            声音标题 <span>{draft.title.length}/60</span>
+                            <input
+                              maxLength={60}
+                              placeholder="给正在听的人，一句温柔的开场"
+                              value={draft.title}
+                              onChange={(e) => update('title', e.target.value)}
+                            />
+                          </label>
+                          <label>
+                            此刻的署名
+                            <input
+                              maxLength={24}
+                              placeholder="不必用真实姓名"
+                              value={draft.signature}
+                              onChange={(e) => update('signature', e.target.value)}
+                            />
+                          </label>
+                          <label>
+                            录制日期
+                            <input
+                              type="date"
+                              value={draft.recordedAt}
+                              max={today()}
+                              onChange={(e) => update('recordedAt', e.target.value)}
+                            />
+                          </label>
+                          <label className="full">
+                            想陪伴谁？
+                            <select
+                              value={draft.mood}
+                              onChange={(e) => update('mood', e.target.value)}
+                            >
+                              {MOODS.map((m) => (
+                                <option key={m}>{m}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <details className="full extra-record">
+                            <summary>更多记录信息</summary>
+                            <div className="optional-fields">
+                              {' '}
+                              <label className="full">
+                                投稿到哪个主题？<span>可选</span>
+                                <select
+                                  value={draft.topic ?? ''}
+                                  onChange={(e) => update('topic', e.target.value)}
+                                >
+                                  <option value="">不选主题 · 普通声音墙</option>
+                                  {TOPICS.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                      {t.name}
+                                    </option>
+                                  ))}
+                                  <option value="podcast">慢慢听 · 长内容播客</option>
+                                </select>
+                                {draft.topic && getTopic(draft.topic) ? (
+                                  <p className="small-note">{getTopic(draft.topic)!.prompt}</p>
+                                ) : null}
+                              </label>
+                              <label className="full">
+                                文字稿 <span>可选 · 方便安静阅读</span>
+                                <textarea
+                                  rows={3}
+                                  maxLength={draft.topic === 'podcast' ? 15000 : 3000}
+                                  placeholder={
+                                    draft.topic === 'podcast'
+                                      ? '写下节目介绍或全文。可用 [00:00] 开场、[02:15] 第一章 这样的独立行标记章节。'
+                                      : '可以把你说的话写下来。第一版不会自动转写。'
+                                  }
+                                  value={draft.transcript}
+                                  onChange={(e) => update('transcript', e.target.value)}
+                                />
+                              </label>
+                              <label className="full">
+                                引用出处 <span>引用他人文字时填写</span>
+                                <input
+                                  maxLength={300}
+                                  placeholder="原创可以留空；引用请注明作者与来源"
+                                  value={draft.source}
+                                  onChange={(e) => update('source', e.target.value)}
+                                />
+                              </label>
+                              <div className="full future-field">
+                                <span className="field-label">
+                                  留给哪一年的自己？ <small>可选</small>
+                                </span>
+                                <div className="chips">
+                                  <button
+                                    className={!draft.futureYear ? 'selected' : ''}
+                                    onClick={() => update('futureYear', '')}
+                                  >
+                                    只记住今天
+                                  </button>
+                                  {[10, 20].map((n) => (
+                                    <button
+                                      key={n}
+                                      className={
+                                        draft.futureYear === String(new Date().getFullYear() + n)
+                                          ? 'selected'
+                                          : ''
+                                      }
+                                      onClick={() =>
+                                        update('futureYear', String(new Date().getFullYear() + n))
+                                      }
+                                    >
+                                      {new Date().getFullYear() + n} · {n} 年后
+                                    </button>
+                                  ))}
+                                </div>
+                                <p className="small-note">
+                                  声音现在即可重听。目标年份会记在档案中，暂不发送定时邮件。
+                                </p>
+                              </div>
+                            </div>
+                          </details>{' '}
+                          <fieldset className="full visibility">
+                            <legend>谁可以听见？</legend>
+                            <label>
+                              <input
+                                type="radio"
+                                name="visibility"
+                                checked={draft.visibility === 'public'}
+                                onChange={() => update('visibility', 'public')}
+                              />
+                              公开，审核后给陌生人力量
+                            </label>
+                            <label>
+                              <input
+                                type="radio"
+                                name="visibility"
+                                checked={draft.visibility === 'private'}
+                                onChange={() => update('visibility', 'private')}
+                              />
+                              仅自己可见，留在我的档案
+                            </label>
+                          </fieldset>
+                          <label className="full consent">
+                            <input
+                              type="checkbox"
+                              checked={consent}
+                              onChange={(e) => setConsent(e.target.checked)}
+                            />
+                            <span>
+                              我拥有这段录音的发布权，理解公开内容可被他人听见，并同意{' '}
+                              <button className="inline-link" onClick={() => navigate('about')}>
+                                保存与社区规则
+                              </button>
+                              。
+                            </span>
+                          </label>
+                        </div>
+                        <button
+                          className="text-button studio-back"
+                          onClick={() => setStudioStep(1)}
+                        >
+                          返回试听
+                        </button>
+                        <div className="submit-row">
+                          <p>
+                            <Icon name="clock" size={17} />
+                            当年的署名与日期，会随原录音保存。
+                          </p>
+                          <button
+                            className="button primary"
+                            disabled={busy || recording}
+                            onClick={submit}
+                          >
+                            {busy ? '正在保存…' : user ? '保存这段声音' : '登录并保存声音'}
+                            <Icon name="arrow" size={18} />
+                          </button>
+                        </div>
+                        <p className="small-note">
+                          录好的草稿会保存在当前浏览器，发布前请勿清理浏览器数据。登录后会返回这里。
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </section>
+            ) : null}
+            {view === 'archive' ? (
+              <section className="page-section">
+                <div className="page-heading">
+                  <h1>我的声音年鉴</h1>
+                  <p>多年以后，再听听此刻的自己。</p>
+                </div>
+                {!meLoaded ? (
+                  <div className="loading">正在打开你的档案…</div>
+                ) : !user ? (
+                  <div className="account-empty">
+                    <Icon name="clock" size={48} />
+                    <h2>给时间，留一个能回来的地址。</h2>
                     <p>
-                      {draft.topic === 'podcast'
-                        ? '先介绍故事，再慢慢展开，最后留一句晚安。建议提前录好并试听，控制音量，注明原创或朗读授权。'
-                        : '先想一个具体的人，说一件真实的小事，再留下一句陪伴。录好可以试听、重录，草稿会留在当前浏览器。'}
+                      登录后建立你的声音档案。保存原录音、当年的署名和日期，
+                      <br />
+                      也可以把它们完整下载，放在自己手里。
                     </p>
+                    {login}
+                    <p className="small-note">邮箱验证码登录 · 第一次登录会自动建立档案</p>
                   </div>
-                  <div className={`recorder ${recording ? 'recording' : ''}`}>
-                    <div className="mic-orb">
-                      <Icon name="mic" size={33} />
+                ) : (
+                  <>
+                    <div className="archive-profile">
+                      <div className="profile-icon">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={t('头像')} />
+                        ) : (
+                          <span data-original>{user.nickname.slice(0, 1)}</span>
+                        )}
+                      </div>
+                      <div>
+                        <h2>
+                          <span data-original className="original-text">
+                            {user.nickname}
+                          </span>
+                          的声音档案
+                        </h2>
+                        <p>{own.length} 段声音 · 每一段，都是那时的你</p>
+                      </div>
+                      <button
+                        className="button outline"
+                        disabled={exporting}
+                        onClick={exportArchive}
+                      >
+                        <Icon name="download" size={18} />
+                        {exporting ? '正在整理档案…' : '完整导出档案'}
+                      </button>
                     </div>
-                    <div className="record-time">
-                      {durationLabel(recording ? recordSeconds : duration)}
-                    </div>
-                    <p>
-                      {recording
-                        ? '正在听你说。准备好了，就按结束。'
-                        : blob
-                          ? '已经录好，先听听自己的声音。'
-                          : draft.topic === 'podcast'
-                            ? '请上传 1–30 分钟、30 MB 以内的音频。'
-                            : '最长 90 秒，真实的声音就很好。'}
-                    </p>
-                    {blobUrl && !recording ? (
-                      <audio
-                        controls
-                        src={blobUrl}
-                        preload="metadata"
-                        aria-label="试听录音草稿"
-                        onPlay={() => {
-                          audioRef.current?.pause();
-                          window.speechSynthesis?.cancel();
-                          setIsPlaying(false);
+                    <details className="account-config">
+                      <summary>账户设置</summary>{' '}
+                      <AvatarSettings
+                        avatarUrl={user.avatarUrl}
+                        nickname={user.nickname}
+                        onChanged={async () => {
+                          await loadMe(true);
                         }}
                       />
-                    ) : null}
-                    <div className="record-actions">
-                      <button
-                        className={`button ${recording ? 'record-stop' : 'primary'}`}
-                        disabled={draft.topic === 'podcast'}
-                        onClick={recording ? stopRecording : startRecording}
-                      >
-                        <Icon name={recording ? 'pause' : 'mic'} />
-                        {draft.topic === 'podcast'
-                          ? '长内容请上传录音'
-                          : recording
-                            ? '结束录音'
-                            : blob
-                              ? '重新录音'
-                              : '开始录音'}
-                      </button>
-                      <button
-                        className="text-button"
-                        disabled={recording}
-                        onClick={() => uploadRef.current?.click()}
-                      >
-                        <Icon name="upload" size={17} />
-                        上传已有录音
-                      </button>
-                    </div>
-                    <input
-                      hidden
-                      ref={uploadRef}
-                      type="file"
-                      accept="audio/*,.webm,.m4a,.mp4,.mp3,.wav,.ogg"
-                      onChange={(e) => upload(e.target.files?.[0])}
-                    />
-                    {blob ? (
-                      <button
-                        className="text-button draft-download"
-                        onClick={() =>
-                          download(
-                            blob,
-                            `一点光-草稿.${blob.type.includes('mp4') ? 'm4a' : blob.type.includes('wav') ? 'wav' : blob.type.includes('mpeg') ? 'mp3' : blob.type.includes('ogg') ? 'ogg' : 'webm'}`,
-                          )
-                        }
-                      >
-                        下载这段草稿
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="panel-heading form-heading">
-                    <h2>给声音一个时间坐标</h2>
-                    <span>02 / 记住此刻</span>
-                  </div>
-                  <div className="form-grid">
-                    <label className="full">
-                      声音标题 <span>{draft.title.length}/60</span>
-                      <input
-                        maxLength={60}
-                        placeholder="给正在听的人，一句温柔的开场"
-                        value={draft.title}
-                        onChange={(e) => update('title', e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      此刻的署名
-                      <input
-                        maxLength={24}
-                        placeholder="不必用真实姓名"
-                        value={draft.signature}
-                        onChange={(e) => update('signature', e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      录制日期
-                      <input
-                        type="date"
-                        value={draft.recordedAt}
-                        max={today()}
-                        onChange={(e) => update('recordedAt', e.target.value)}
-                      />
-                    </label>
-                    <label className="full">
-                      想陪伴谁？
-                      <select value={draft.mood} onChange={(e) => update('mood', e.target.value)}>
-                        {MOODS.map((m) => (
-                          <option key={m}>{m}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="full">
-                      投稿到哪个主题？<span>可选</span>
-                      <select
-                        value={draft.topic ?? ''}
-                        onChange={(e) => update('topic', e.target.value)}
-                      >
-                        <option value="">不选主题 · 普通声音墙</option>
-                        {TOPICS.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                        <option value="podcast">慢慢听 · 长内容播客</option>
-                      </select>
-                      {draft.topic && getTopic(draft.topic) ? (
-                        <p className="small-note">{getTopic(draft.topic)!.prompt}</p>
-                      ) : null}
-                    </label>
-                    <label className="full">
-                      文字稿 <span>可选 · 方便安静阅读</span>
-                      <textarea
-                        rows={3}
-                        maxLength={draft.topic === 'podcast' ? 15000 : 3000}
-                        placeholder={
-                          draft.topic === 'podcast'
-                            ? '写下节目介绍或全文。可用 [00:00] 开场、[02:15] 第一章 这样的独立行标记章节。'
-                            : '可以把你说的话写下来。第一版不会自动转写。'
-                        }
-                        value={draft.transcript}
-                        onChange={(e) => update('transcript', e.target.value)}
-                      />
-                    </label>
-                    <label className="full">
-                      引用出处 <span>引用他人文字时填写</span>
-                      <input
-                        maxLength={300}
-                        placeholder="原创可以留空；引用请注明作者与来源"
-                        value={draft.source}
-                        onChange={(e) => update('source', e.target.value)}
-                      />
-                    </label>
-                    <div className="full future-field">
-                      <span className="field-label">
-                        留给哪一年的自己？ <small>可选</small>
-                      </span>
-                      <div className="chips">
-                        <button
-                          className={!draft.futureYear ? 'selected' : ''}
-                          onClick={() => update('futureYear', '')}
-                        >
-                          只记住今天
+                      <div className="account-settings">
+                        <div>
+                          <h3>下次想用什么署名？</h3>
+                          <p>修改只影响新录音，过去的署名会保留。</p>
+                        </div>
+                        <input
+                          aria-label="新的署名"
+                          maxLength={24}
+                          value={nickname}
+                          onChange={(e) => setNickname(e.target.value)}
+                        />
+                        <button className="button outline small" onClick={saveNickname}>
+                          保存署名
                         </button>
-                        {[10, 20].map((n) => (
+                      </div>
+                    </details>
+                    <VoiceRings
+                      voices={own}
+                      onPlay={(v) => void play(v)}
+                      onStart={(question, previous) => {
+                        if (draft.title || blob) {
+                          notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
+                          navigate('studio');
+                          return;
+                        }
+                        setDraft({
+                          ...initialDraft(),
+                          signature: user.nickname,
+                          title: question,
+                          mood: '给未来的我',
+                          visibility: 'private',
+                          parentId: previous?.id ?? '',
+                        });
+                        navigate('studio');
+                      }}
+                    />
+                    <div className="archive-toolbar">
+                      <div className="chips">
+                        {[
+                          ['all', '全部声音'],
+                          ['future', '给未来的我'],
+                          ['pending', '待审核'],
+                          ['saved', '我的收藏'],
+                        ].map(([k, v]) => (
                           <button
-                            key={n}
-                            className={
-                              draft.futureYear === String(new Date().getFullYear() + n)
-                                ? 'selected'
-                                : ''
-                            }
-                            onClick={() =>
-                              update('futureYear', String(new Date().getFullYear() + n))
-                            }
+                            key={k}
+                            className={archiveTab === k ? 'selected' : ''}
+                            onClick={() => setArchiveTab(k)}
                           >
-                            {new Date().getFullYear() + n} · {n} 年后
+                            {v}
                           </button>
                         ))}
                       </div>
-                      <p className="small-note">
-                        声音现在即可重听。目标年份会记在档案中，暂不发送定时邮件。
+                      <select
+                        aria-label="筛选录制年份"
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                      >
+                        <option value="all">所有年份</option>
+                        {years.map((y) => (
+                          <option key={y}>{y}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {archiveList.length ? (
+                      <div className="voice-grid archive-grid">
+                        {archiveList.map((v) => card(v, archiveTab !== 'saved'))}
+                      </div>
+                    ) : (
+                      <div className="empty">
+                        <Icon name="mail" size={36} />
+                        <h3>
+                          {archiveTab === 'saved'
+                            ? '收藏一句，让你有力量的话'
+                            : '这一年的你，还没有留下声音'}
+                        </h3>
+                        <p>不需要等到特别的日子。一个普通的今天，也值得被记住。</p>
+                        <button
+                          className="button primary"
+                          onClick={() => navigate(archiveTab === 'saved' ? 'wall' : 'studio')}
+                        >
+                          {archiveTab === 'saved' ? '去听一段声音' : '留下第一段声音'}
+                        </button>
+                      </div>
+                    )}
+                    <div className="archive-links">
+                      {user.admin ? (
+                        <button onClick={() => navigate('admin')}>
+                          <Icon name="shield" size={17} />
+                          审核工作台
+                        </button>
+                      ) : null}
+                      <button onClick={() => navigate('about')}>长期保存说明</button>
+                      <button onClick={logout}>退出登录</button>
+                    </div>
+                  </>
+                )}
+              </section>
+            ) : null}
+            {view === 'admin' ? (
+              <section className="page-section">
+                <div className="page-heading">
+                  <h1>为善意，认真把关</h1>
+                  <p>先完整听一遍，再判断是否适合公开与首页精选。</p>
+                </div>
+                {!user?.admin ? (
+                  <div className="empty">
+                    <h2>这里需要审核员权限</h2>
+                    <p>管理员通过服务端白名单设置，普通账户不能进入。</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="guideline">
+                      <Icon name="shield" />
+                      <p>
+                        精选标准：真诚具体、尊重情绪、听感清楚、不营销、不攻击、不作不切实际的承诺。公开不代表精选，首页推荐需要单独决定。
                       </p>
                     </div>
-                    <fieldset className="full visibility">
-                      <legend>谁可以听见？</legend>
-                      <label>
-                        <input
-                          type="radio"
-                          name="visibility"
-                          checked={draft.visibility === 'public'}
-                          onChange={() => update('visibility', 'public')}
-                        />
-                        公开，审核后给陌生人力量
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name="visibility"
-                          checked={draft.visibility === 'private'}
-                          onChange={() => update('visibility', 'private')}
-                        />
-                        仅自己可见，留在我的档案
-                      </label>
-                    </fieldset>
-                    <label className="full consent">
-                      <input
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) => setConsent(e.target.checked)}
-                      />
-                      <span>
-                        我拥有这段录音的发布权，理解公开内容可被他人听见，并同意{' '}
-                        <button className="inline-link" onClick={() => navigate('about')}>
-                          保存与社区规则
-                        </button>
-                        。
-                      </span>
-                    </label>
-                  </div>
-                  <div className="submit-row">
-                    <p>
-                      <Icon name="clock" size={17} />
-                      当年的署名与日期，会随原录音保存。
-                    </p>
-                    <button
-                      className="button primary"
-                      disabled={busy || recording}
-                      onClick={submit}
-                    >
-                      {busy ? '正在保存…' : user ? '保存这段声音' : '登录并保存声音'}
-                      <Icon name="arrow" size={18} />
-                    </button>
-                  </div>
-                  <p className="small-note">
-                    录好的草稿会保存在当前浏览器，发布前请勿清理浏览器数据。登录后会返回这里。
-                  </p>
-                </div>
-              </div>
-            )}
-          </section>
-        ) : null}
-        {view === 'archive' ? (
-          <section className="page-section">
-            <div className="page-heading">
-              <h1>我的声音年鉴</h1>
-              <p>多年以后，再听听此刻的自己。</p>
-            </div>
-            {!meLoaded ? (
-              <div className="loading">正在打开你的档案…</div>
-            ) : !user ? (
-              <div className="account-empty">
-                <Icon name="clock" size={48} />
-                <h2>给时间，留一个能回来的地址。</h2>
-                <p>
-                  登录后建立你的声音档案。保存原录音、当年的署名和日期，
-                  <br />
-                  也可以把它们完整下载，放在自己手里。
-                </p>
-                {login}
-                <p className="small-note">邮箱验证码登录 · 第一次登录会自动建立档案</p>
-              </div>
-            ) : (
-              <>
-                <div className="archive-profile">
-                  <div className="profile-icon">{user.nickname.slice(0, 1)}</div>
-                  <div>
-                    <h2>{user.nickname}的声音档案</h2>
-                    <p>{own.length} 段声音 · 每一段，都是那时的你</p>
-                  </div>
-                  <button className="button outline" disabled={exporting} onClick={exportArchive}>
-                    <Icon name="download" size={18} />
-                    {exporting ? '正在整理档案…' : '完整导出档案'}
-                  </button>
-                </div>
-                <VoiceRings
-                  voices={own}
-                  onPlay={(v) => void play(v)}
-                  onStart={(question, previous) => {
-                    if (draft.title || blob) {
-                      notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
-                      navigate('studio');
-                      return;
-                    }
-                    setDraft({
-                      ...initialDraft(),
-                      signature: user.nickname,
-                      title: question,
-                      mood: '给未来的我',
-                      visibility: 'private',
-                      parentId: previous?.id ?? '',
-                    });
-                    navigate('studio');
-                  }}
-                />
-                <div className="archive-toolbar">
-                  <div className="chips">
-                    {[
-                      ['all', '全部声音'],
-                      ['future', '给未来的我'],
-                      ['pending', '待审核'],
-                      ['saved', '我的收藏'],
-                    ].map(([k, v]) => (
-                      <button
-                        key={k}
-                        className={archiveTab === k ? 'selected' : ''}
-                        onClick={() => setArchiveTab(k)}
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  </div>
-                  <select
-                    aria-label="筛选录制年份"
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                  >
-                    <option value="all">所有年份</option>
-                    {years.map((y) => (
-                      <option key={y}>{y}</option>
-                    ))}
-                  </select>
-                </div>
-                {archiveList.length ? (
-                  <div className="voice-grid archive-grid">
-                    {archiveList.map((v) => card(v, archiveTab !== 'saved'))}
-                  </div>
-                ) : (
-                  <div className="empty">
-                    <Icon name="mail" size={36} />
-                    <h3>
-                      {archiveTab === 'saved'
-                        ? '收藏一句，让你有力量的话'
-                        : '这一年的你，还没有留下声音'}
-                    </h3>
-                    <p>不需要等到特别的日子。一个普通的今天，也值得被记住。</p>
-                    <button
-                      className="button primary"
-                      onClick={() => navigate(archiveTab === 'saved' ? 'wall' : 'studio')}
-                    >
-                      {archiveTab === 'saved' ? '去听一段声音' : '留下第一段声音'}
-                    </button>
-                  </div>
+                    <h2 className="admin-heading">
+                      声音审核 · {adminVoices.filter((v) => v.status === 'pending').length} 段待处理
+                    </h2>
+                    {adminVoices.length ? (
+                      adminVoices.map((v) => (
+                        <div className="admin-row" key={v.id}>
+                          <div>
+                            {card(v)}
+                            <p className="small-note">
+                              状态：{v.status} · {v.featured ? '首页精选' : '未精选'}
+                            </p>
+                            <p className="admin-transcript">
+                              <span data-original={!!v.transcript}>
+                                {v.transcript || '未填写文字稿，请听取原音频。'}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="review-controls">
+                            <label>
+                              审核说明
+                              <textarea
+                                placeholder="退回时必须说明原因"
+                                maxLength={300}
+                                value={reviewNotes[v.id] ?? ''}
+                                onChange={(e) =>
+                                  setReviewNotes((n) => ({ ...n, [v.id]: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <button
+                              className="button primary"
+                              disabled={busy}
+                              onClick={() => review(v.id, 'feature')}
+                            >
+                              通过并首页精选
+                            </button>
+                            <button
+                              className="button outline"
+                              disabled={busy}
+                              onClick={() => review(v.id, 'approve')}
+                            >
+                              仅通过公开
+                            </button>
+                            <button
+                              className="text-button danger"
+                              disabled={busy}
+                              onClick={() => review(v.id, 'reject')}
+                            >
+                              退回并说明原因
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty">暂时没有投稿，等待第一点光。</div>
+                    )}
+                    <h2 className="admin-heading">
+                      频道文字与图片 · {adminMessages.filter((m) => m.status === 'pending').length}{' '}
+                      条待处理
+                    </h2>
+                    {adminMessages.length ? (
+                      adminMessages.map((m) => (
+                        <div className="admin-row" key={m.id}>
+                          <div>
+                            <p className="small-note">
+                              #{getTopic(m.topic)?.name ?? m.topic} ·{' '}
+                              <span data-original className="original-text">
+                                {m.signature}
+                              </span>{' '}
+                              · {m.status}
+                            </p>
+                            <p className="admin-transcript">
+                              <span data-original={!!m.body}>{m.body || '图片消息'}</span>
+                            </p>
+                            {m.kind === 'image' ? (
+                              <img
+                                className="admin-message-image"
+                                src={`/api/messages/${m.id}/media`}
+                                alt="待审核频道图片"
+                              />
+                            ) : null}
+                          </div>
+                          <div className="review-controls">
+                            <label>
+                              审核说明
+                              <textarea
+                                maxLength={300}
+                                value={reviewNotes[m.id] ?? ''}
+                                onChange={(e) =>
+                                  setReviewNotes((n) => ({ ...n, [m.id]: e.target.value }))
+                                }
+                              />
+                            </label>
+                            <button
+                              className="button primary"
+                              disabled={busy}
+                              onClick={() => review(m.id, 'approve', 'message')}
+                            >
+                              通过并公开
+                            </button>
+                            <button
+                              className="text-button danger"
+                              disabled={busy}
+                              onClick={() => review(m.id, 'reject', 'message')}
+                            >
+                              退回并说明原因
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="small-note">暂时没有频道消息。</p>
+                    )}
+                    <h2 className="admin-heading">收到的举报</h2>
+                    {reports.length ? (
+                      reports.map((r) => (
+                        <div className="report-row" key={r.id}>
+                          <div>
+                            <strong>{r.title ?? '声音已删除'}</strong>
+                            <p>{r.reason}</p>
+                          </div>
+                          <button
+                            className="button outline small"
+                            onClick={() => review(r.id, 'resolve')}
+                          >
+                            标记已处理
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="small-note">目前没有未处理的举报。</p>
+                    )}
+                  </>
                 )}
-                <div className="account-settings">
-                  <div>
-                    <h3>下次想用什么署名？</h3>
-                    <p>修改只影响新录音，过去的署名会保留。</p>
-                  </div>
-                  <input
-                    aria-label="新的署名"
-                    maxLength={24}
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                  />
-                  <button className="button outline small" onClick={saveNickname}>
-                    保存署名
-                  </button>
+              </section>
+            ) : null}
+            {view === 'about' ? (
+              <section className="page-section about">
+                <div className="page-heading">
+                  <h1>让善意留下，也让时间留下。</h1>
+                  <p>一点光的社区与保存约定</p>
                 </div>
-                <div className="archive-links">
-                  {user.admin ? (
-                    <button onClick={() => navigate('admin')}>
-                      <Icon name="shield" size={17} />
-                      审核工作台
-                    </button>
-                  ) : null}
-                  <button onClick={() => navigate('about')}>长期保存说明</button>
-                  <button onClick={logout}>退出登录</button>
-                </div>
-              </>
-            )}
-          </section>
-        ) : null}
-        {view === 'admin' ? (
-          <section className="page-section">
-            <div className="page-heading">
-              <h1>为善意，认真把关</h1>
-              <p>先完整听一遍，再判断是否适合公开与首页精选。</p>
-            </div>
-            {!user?.admin ? (
-              <div className="empty">
-                <h2>这里需要审核员权限</h2>
-                <p>管理员通过服务端白名单设置，普通账户不能进入。</p>
-              </div>
-            ) : (
-              <>
-                <div className="guideline">
-                  <Icon name="shield" />
+                <section>
+                  <h2>这里欢迎什么样的声音？</h2>
                   <p>
-                    精选标准：真诚具体、尊重情绪、听感清楚、不营销、不攻击、不作不切实际的承诺。公开不代表精选，首页推荐需要单独决定。
+                    真实的经历、温柔的陪伴、具体的小建议。允许难过，尊重每个人的节奏。请勿发布攻击、歧视、广告、他人的隐私或无权发布的音频。引用文字请注明来源。
                   </p>
-                </div>
-                <h2 className="admin-heading">
-                  声音审核 · {adminVoices.filter((v) => v.status === 'pending').length} 段待处理
-                </h2>
-                {adminVoices.length ? (
-                  adminVoices.map((v) => (
-                    <div className="admin-row" key={v.id}>
-                      <div>
-                        {card(v)}
-                        <p className="small-note">
-                          状态：{v.status} · {v.featured ? '首页精选' : '未精选'}
-                        </p>
-                        <p className="admin-transcript">
-                          {v.transcript || '未填写文字稿，请听取原音频。'}
-                        </p>
-                      </div>
-                      <div className="review-controls">
-                        <label>
-                          审核说明
-                          <textarea
-                            placeholder="退回时必须说明原因"
-                            maxLength={300}
-                            value={reviewNotes[v.id] ?? ''}
-                            onChange={(e) =>
-                              setReviewNotes((n) => ({ ...n, [v.id]: e.target.value }))
-                            }
-                          />
-                        </label>
-                        <button
-                          className="button primary"
-                          disabled={busy}
-                          onClick={() => review(v.id, 'feature')}
-                        >
-                          通过并首页精选
-                        </button>
-                        <button
-                          className="button outline"
-                          disabled={busy}
-                          onClick={() => review(v.id, 'approve')}
-                        >
-                          仅通过公开
-                        </button>
-                        <button
-                          className="text-button danger"
-                          disabled={busy}
-                          onClick={() => review(v.id, 'reject')}
-                        >
-                          退回并说明原因
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="empty">暂时没有投稿，等待第一点光。</div>
-                )}
-                <h2 className="admin-heading">
-                  频道文字与图片 · {adminMessages.filter((m) => m.status === 'pending').length}{' '}
-                  条待处理
-                </h2>
-                {adminMessages.length ? (
-                  adminMessages.map((m) => (
-                    <div className="admin-row" key={m.id}>
-                      <div>
-                        <p className="small-note">
-                          #{getTopic(m.topic)?.name ?? m.topic} · {m.signature} · {m.status}
-                        </p>
-                        <p className="admin-transcript">{m.body || '图片消息'}</p>
-                        {m.kind === 'image' ? (
-                          <img
-                            className="admin-message-image"
-                            src={`/api/messages/${m.id}/media`}
-                            alt="待审核频道图片"
-                          />
-                        ) : null}
-                      </div>
-                      <div className="review-controls">
-                        <label>
-                          审核说明
-                          <textarea
-                            maxLength={300}
-                            value={reviewNotes[m.id] ?? ''}
-                            onChange={(e) =>
-                              setReviewNotes((n) => ({ ...n, [m.id]: e.target.value }))
-                            }
-                          />
-                        </label>
-                        <button
-                          className="button primary"
-                          disabled={busy}
-                          onClick={() => review(m.id, 'approve', 'message')}
-                        >
-                          通过并公开
-                        </button>
-                        <button
-                          className="text-button danger"
-                          disabled={busy}
-                          onClick={() => review(m.id, 'reject', 'message')}
-                        >
-                          退回并说明原因
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="small-note">暂时没有频道消息。</p>
-                )}
-                <h2 className="admin-heading">收到的举报</h2>
-                {reports.length ? (
-                  reports.map((r) => (
-                    <div className="report-row" key={r.id}>
-                      <div>
-                        <strong>{r.title ?? '声音已删除'}</strong>
-                        <p>{r.reason}</p>
-                      </div>
-                      <button
-                        className="button outline small"
-                        onClick={() => review(r.id, 'resolve')}
-                      >
-                        标记已处理
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p className="small-note">目前没有未处理的举报。</p>
-                )}
-              </>
-            )}
-          </section>
-        ) : null}
-        {view === 'about' ? (
-          <section className="page-section about">
-            <div className="page-heading">
-              <h1>让善意留下，也让时间留下。</h1>
-              <p>一点光的社区与保存约定</p>
-            </div>
-            <section>
-              <h2>这里欢迎什么样的声音？</h2>
-              <p>
-                真实的经历、温柔的陪伴、具体的小建议。允许难过，尊重每个人的节奏。请勿发布攻击、歧视、广告、他人的隐私或无权发布的音频。引用文字请注明来源。
-              </p>
-              <p>
-                公开投稿先经人工审核；首页由审核员另外精选。收藏与“给了我力量”不是首页排名依据。觉得内容不合适时，可在详情中举报。
-              </p>
-            </section>
-            <section>
-              <h2>署名与时间，是声音的一部分。</h2>
-              <p>
-                保存时固定当次署名和录制日期。上传旧录音的录制日期由用户填写，发布日期由服务器记录，两者独立保存。修改个人昵称不会修改过去的署名。未来回应是一段新录音，不覆盖原录音。
-              </p>
-            </section>
-            <section>
-              <h2>关于十年、二十年的保存。</h2>
-              <p>
-                声音与元数据分别存储在服务端对象存储和数据库中，可跨设备访问。我们不承诺永久保存；长期运营需要持续维护与备份。请定期使用完整导出功能，把原音频、文字稿、署名与日期保存在自己的设备，并另存一份备份。
-              </p>
-              <p>
-                未来年份是档案标记，不会把声音锁到那一年；第一版不发送定时邮件。若服务计划停止，应提前公告，并提供至少
-                90 天的导出窗口。
-              </p>
-            </section>
-            <section>
-              <h2>你可以控制自己的声音。</h2>
-              <p>
-                可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史备份的清理按运营备份周期处理。
-              </p>
-              <p>
-                每个账户最多保存 200 段、共 500 MB，每小时最多提交 10 段，短声音每段最长 90 秒、最大
-                10 MB；播客为 1–30 分钟、最大 30
-                MB。录音草稿只保存在当前浏览器，清理数据会移除草稿。
-              </p>
-            </section>
-            <button className="button primary" onClick={() => navigate('studio')}>
-              留下我的声音 <Icon name="arrow" />
+                  <p>
+                    公开投稿先经人工审核；首页由审核员另外精选。收藏与“给了我力量”不是首页排名依据。觉得内容不合适时，可在详情中举报。
+                  </p>
+                </section>
+                <section>
+                  <h2>署名与时间，是声音的一部分。</h2>
+                  <p>
+                    保存时固定当次署名和录制日期。上传旧录音的录制日期由用户填写，发布日期由服务器记录，两者独立保存。修改个人昵称不会修改过去的署名。未来回应是一段新录音，不覆盖原录音。
+                  </p>
+                </section>
+                <section>
+                  <h2>关于十年、二十年的保存。</h2>
+                  <p>
+                    声音与元数据分别存储在服务端对象存储和数据库中，可跨设备访问。我们不承诺永久保存；长期运营需要持续维护与备份。请定期使用完整导出功能，把原音频、文字稿、署名与日期保存在自己的设备，并另存一份备份。
+                  </p>
+                  <p>
+                    未来年份是档案标记，不会把声音锁到那一年；第一版不发送定时邮件。若服务计划停止，应提前公告，并提供至少
+                    90 天的导出窗口。
+                  </p>
+                </section>
+                <section>
+                  <h2>你可以控制自己的声音。</h2>
+                  <p>
+                    可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史备份的清理按运营备份周期处理。
+                  </p>
+                  <p>
+                    每个账户最多保存 200 段、共 500 MB，每小时最多提交 10 段，短声音每段最长 90
+                    秒、最大 10 MB；播客为 1–30 分钟、最大 30
+                    MB。录音草稿只保存在当前浏览器，清理数据会移除草稿。
+                  </p>
+                </section>
+                <button className="button primary" onClick={() => navigate('studio')}>
+                  留下我的声音 <Icon name="arrow" />
+                </button>
+              </section>
+            ) : null}
+          </main>
+          <footer>
+            <button className="brand footer-brand" onClick={() => navigate('wall')}>
+              <Icon name="sun" size={25} />
+              <span>
+                一点光
+                <small className="brand-english">
+                  {locale === 'en' ? 'Voices & time' : 'A Glimmer'}
+                </small>
+              </span>
             </button>
-          </section>
-        ) : null}
-      </main>
-      <footer>
-        <button className="brand footer-brand" onClick={() => navigate('wall')}>
-          <Icon name="sun" size={25} />
-          <span>
-            一点光<small className="brand-english">A Glimmer</small>
-          </span>
-        </button>
-        <p className="footer-slogan">
-          每个声音里，都有一点光。<span lang="en">A little light, in every voice.</span>
-        </p>
-        <button onClick={() => navigate('about')}>社区与保存约定</button>
-      </footer>
-      <audio
-        ref={audioRef}
-        preload="none"
-        onPlay={() => setIsPlaying(true)}
-        onPause={(e) => {
-          setIsPlaying(false);
-          if (playing?.topic === 'podcast') {
-            try {
-              localStorage.setItem(
-                'glimmer-progress:' + playing.id,
-                String(e.currentTarget.currentTime),
-              );
-            } catch {}
-          }
-        }}
-        onEnded={() => {
-          setIsPlaying(false);
-          if (sleepMinutes === -1) {
-            setSleepMinutes(0);
-            notify('本集已经结束。晚安。');
-          }
-
-          if (playing?.topic === 'podcast') {
-            try {
-              localStorage.removeItem('glimmer-progress:' + playing.id);
-            } catch {}
-          }
-        }}
-        onTimeUpdate={(e) => {
-          const time = e.currentTarget.currentTime;
-          setPosition(time);
-          if (playing?.topic === 'podcast' && Date.now() - progressWrite.current > 5000) {
-            try {
-              localStorage.setItem('glimmer-progress:' + playing.id, String(time));
-            } catch {}
-            progressWrite.current = Date.now();
-          }
-        }}
-        onLoadedMetadata={(e) => {
-          if (Number.isFinite(e.currentTarget.duration)) {
-            setAudioDuration(e.currentTarget.duration);
-            if (playing?.topic === 'podcast') {
-              try {
-                const time = resumePosition(
-                  localStorage.getItem('glimmer-progress:' + playing.id),
-                  e.currentTarget.duration,
-                );
-                if (time > 0 && time < e.currentTarget.duration - 5)
-                  e.currentTarget.currentTime = time;
-              } catch {}
-            }
-          }
-        }}
-        onError={() => {
-          setIsPlaying(false);
-          notify('这段声音暂时无法播放。');
-        }}
-      />
-      {playing ? (
-        <div className="player-bar">
-          <button
-            className="play-button"
-            onClick={() => play(playing)}
-            aria-label={isPlaying ? '暂停当前声音' : '继续播放'}
-          >
-            <Icon name={isPlaying ? 'pause' : 'play'} fill={!isPlaying} size={18} />
-          </button>
-          <div className="player-info">
-            <strong>{playing.title}</strong>
-            <span>{playing.signature}</span>
-          </div>
-          <div className="player-progress">
-            <input
-              aria-label="音频播放进度"
-              type="range"
-              disabled={playing.demo && !playing.audioUrl}
-              min={0}
-              max={audioDuration || playing.duration}
-              step={0.1}
-              value={position}
-              onChange={(e) => {
-                if (audioRef.current) {
-                  audioRef.current.currentTime = Number(e.target.value);
-                  setPosition(Number(e.target.value));
-                }
-              }}
-            />
-            <span>
-              {durationLabel(position)} / {durationLabel(audioDuration || playing.duration)}
-            </span>
-          </div>
-          {playing.topic === 'podcast' ? (
-            <div className="podcast-skip">
-              <button
-                aria-label="后退 15 秒"
-                onClick={() => {
-                  const a = audioRef.current;
-                  if (a) a.currentTime = Math.max(0, a.currentTime - 15);
-                }}
-              >
-                −15s
-              </button>
-              <button
-                aria-label="前进 15 秒"
-                onClick={() => {
-                  const a = audioRef.current;
-                  if (a && Number.isFinite(a.duration))
-                    a.currentTime = Math.min(a.duration, a.currentTime + 15);
-                }}
-              >
-                +15s
-              </button>
-            </div>
-          ) : null}
-          <button
-            disabled={playing.demo && !playing.audioUrl}
-            className="rate-button"
-            aria-label="切换播放速度"
-            onClick={() => {
-              const speeds = playing.topic === 'podcast' ? [0.75, 1, 1.25, 1.5] : [1, 1.25, 1.5];
-              const n = speeds[(speeds.indexOf(rate) + 1) % speeds.length];
-              setRate(n);
-              if (audioRef.current) audioRef.current.playbackRate = n;
-            }}
-          >
-            {rate}×
-          </button>
-          {sleepMinutes !== 0 ? (
-            <button
-              className="text-button sleep-status"
-              onClick={() => setSleepMinutes(0)}
-              aria-label="取消睡眠定时"
-            >
-              {sleepMinutes === -1 ? '本集结束后' : `${sleepMinutes} 分钟定时`} · 取消
-            </button>
-          ) : null}
-          <button
-            className="icon-button"
-            aria-label="关闭播放器"
-            onClick={() => {
-              audioRef.current?.pause();
-              window.speechSynthesis?.cancel();
-              speechRef.current = null;
-              setIsPlaying(false);
-              setPlaying(null);
-            }}
-          >
-            <Icon name="close" />
-          </button>
-        </div>
-      ) : null}
-      {toast ? (
-        <div className="toast" role="status">
-          <Icon name="sun" size={18} />
-          {toast}
-          <button className="icon-button" aria-label="关闭提示" onClick={() => setToast('')}>
-            <Icon name="close" size={16} />
-          </button>
-        </div>
-      ) : null}
-      {authOpen ? (
-        <AuthDialog
-          onClose={() => {
-            setAuthOpen(false);
-            void loadMe();
-          }}
-          onComplete={completeAuth}
-          onRules={() => {
-            setAuthOpen(false);
-            navigate('about');
-          }}
-        />
-      ) : null}
-      {selected ? (
-        <div
-          className="modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSelected(null);
-          }}
-        >
-          <section
-            className="voice-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="声音详情"
-            tabIndex={-1}
-            ref={modalRef}
-          >
-            <button
-              className="modal-close icon-button"
-              aria-label="关闭声音详情"
-              onClick={() => setSelected(null)}
-            >
-              <Icon name="close" />
-            </button>
-            <span className="detail-mood">{selected.mood}</span>
-            <h2>{selected.title}</h2>
-            <p className="detail-signature">
-              {selected.signature} · 录制于 {dateLabel(selected.recordedAt)}
+            <p className="footer-slogan">
+              每个声音里，都有一点光。<span lang="en">A little light, in every voice.</span>
             </p>
-            <div className="detail-player">
+            <button onClick={() => navigate('about')}>社区与保存约定</button>
+          </footer>
+          <audio
+            ref={audioRef}
+            preload="none"
+            onPlay={() => setIsPlaying(true)}
+            onPause={(e) => {
+              setIsPlaying(false);
+              if (playing?.topic === 'podcast') {
+                try {
+                  localStorage.setItem(
+                    'glimmer-progress:' + playing.id,
+                    String(e.currentTarget.currentTime),
+                  );
+                } catch {}
+              }
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              if (sleepMinutes === -1) {
+                setSleepMinutes(0);
+                notify('本集已经结束。晚安。');
+              }
+
+              if (playing?.topic === 'podcast') {
+                try {
+                  localStorage.removeItem('glimmer-progress:' + playing.id);
+                } catch {}
+              }
+            }}
+            onTimeUpdate={(e) => {
+              const time = e.currentTarget.currentTime;
+              setPosition(time);
+              if (playing?.topic === 'podcast' && Date.now() - progressWrite.current > 5000) {
+                try {
+                  localStorage.setItem('glimmer-progress:' + playing.id, String(time));
+                } catch {}
+                progressWrite.current = Date.now();
+              }
+            }}
+            onLoadedMetadata={(e) => {
+              if (Number.isFinite(e.currentTarget.duration)) {
+                setAudioDuration(e.currentTarget.duration);
+                if (playing?.topic === 'podcast') {
+                  try {
+                    const time = resumePosition(
+                      localStorage.getItem('glimmer-progress:' + playing.id),
+                      e.currentTarget.duration,
+                    );
+                    if (time > 0 && time < e.currentTarget.duration - 5)
+                      e.currentTarget.currentTime = time;
+                  } catch {}
+                }
+              }
+            }}
+            onError={() => {
+              setIsPlaying(false);
+              notify('这段声音暂时无法播放。');
+            }}
+          />
+          {playing ? (
+            <div className="player-bar">
               <button
                 className="play-button"
-                onClick={() => play(selected)}
-                aria-label="播放详情声音"
+                onClick={() => play(playing)}
+                aria-label={isPlaying ? '暂停当前声音' : '继续播放'}
               >
-                <Icon
-                  name={playing?.id === selected.id && isPlaying ? 'pause' : 'play'}
-                  fill={!(playing?.id === selected.id && isPlaying)}
-                />
+                <Icon name={isPlaying ? 'pause' : 'play'} fill={!isPlaying} size={18} />
               </button>
-              <Wave progress={playing?.id === selected.id ? position / (audioDuration || 1) : 0} />
-              <span>{durationLabel(selected.duration)}</span>
-            </div>
-            {selected.topic === 'podcast' &&
-            podcastChapters(selected.transcript, selected.duration).length ? (
-              <div className="podcast-chapters" aria-label="节目章节">
-                <h3>从这一章开始</h3>
-                {podcastChapters(selected.transcript, selected.duration).map((c) => (
+              <div className="player-info">
+                <strong>
+                  <span data-original className="original-text">
+                    {playing.title}
+                  </span>
+                </strong>
+                <span>
+                  <span data-original className="original-text">
+                    {playing.signature}
+                  </span>
+                </span>
+              </div>
+              <div className="player-progress">
+                <input
+                  aria-label="音频播放进度"
+                  type="range"
+                  disabled={playing.demo && !playing.audioUrl}
+                  min={0}
+                  max={audioDuration || playing.duration}
+                  step={0.1}
+                  value={position}
+                  onChange={(e) => {
+                    if (audioRef.current) {
+                      audioRef.current.currentTime = Number(e.target.value);
+                      setPosition(Number(e.target.value));
+                    }
+                  }}
+                />
+                <span>
+                  {durationLabel(position)} / {durationLabel(audioDuration || playing.duration)}
+                </span>
+              </div>
+              {playing.topic === 'podcast' ? (
+                <div className="podcast-skip">
                   <button
-                    key={c.seconds}
-                    onClick={async () => {
-                      if (playing?.id !== selected.id) await play(selected);
+                    aria-label="后退 15 秒"
+                    onClick={() => {
                       const a = audioRef.current;
-                      if (a && Number.isFinite(a.duration)) {
-                        a.currentTime = c.seconds;
-                        void a.play().catch(() => notify('请点击播放开始倾听。'));
-                      }
+                      if (a) a.currentTime = Math.max(0, a.currentTime - 15);
                     }}
                   >
-                    {durationLabel(c.seconds)} · {c.title}
+                    −15s
                   </button>
-                ))}
-              </div>
-            ) : null}
-            <div className="transcript">
-              <h3>安静地读一读</h3>
-              <p>{selected.transcript || '这段声音暂未提供文字稿，你可以播放原录音。'}</p>
-            </div>
-            {selected.source ? <p className="small-note">出处：{selected.source}</p> : null}
-            <div className="detail-dates">
-              <span>录制日期：{dateLabel(selected.recordedAt)}（录制者填写）</span>
-              <span>
-                保存时间：
-                {new Date(selected.createdAt).toLocaleString('zh-CN', {
-                  timeZone: 'Asia/Shanghai',
-                })}{' '}
-                · 上海时间
-              </span>
-              {selected.futureYear ? <span>写给 {selected.futureYear} 年的自己</span> : null}
-            </div>
-            {!selected.demo && selected.parentId && own.some((v) => v.id === selected.parentId) ? (
+                  <button
+                    aria-label="前进 15 秒"
+                    onClick={() => {
+                      const a = audioRef.current;
+                      if (a && Number.isFinite(a.duration))
+                        a.currentTime = Math.min(a.duration, a.currentTime + 15);
+                    }}
+                  >
+                    +15s
+                  </button>
+                </div>
+              ) : null}
               <button
-                className="text-button"
-                onClick={() => setSelected(own.find((v) => v.id === selected.parentId) ?? null)}
+                disabled={playing.demo && !playing.audioUrl}
+                className="rate-button"
+                aria-label="切换播放速度"
+                onClick={() => {
+                  const speeds =
+                    playing.topic === 'podcast' ? [0.75, 1, 1.25, 1.5] : [1, 1.25, 1.5];
+                  const n = speeds[(speeds.indexOf(rate) + 1) % speeds.length];
+                  setRate(n);
+                  if (audioRef.current) audioRef.current.playbackRate = n;
+                }}
               >
-                听听当年的那段声音 <Icon name="arrow" size={16} />
+                {rate}×
               </button>
-            ) : null}
-            {own
-              .filter((v) => v.parentId === selected.id)
-              .map((v) => (
+              {sleepMinutes !== 0 ? (
                 <button
-                  className="text-button reply-link"
-                  key={v.id}
-                  onClick={() => setSelected(v)}
+                  className="text-button sleep-status"
+                  onClick={() => setSleepMinutes(0)}
+                  aria-label="取消睡眠定时"
                 >
-                  后来留下的回应 · {dateLabel(v.recordedAt)} <Icon name="arrow" size={16} />
-                </button>
-              ))}
-            <div className="detail-actions">
-              <button className="button outline small" onClick={() => react(selected, 'heart')}>
-                <Icon name="heart" size={17} />
-                给了我力量
-              </button>
-              <button className="button outline small" onClick={() => react(selected, 'save')}>
-                <Icon name="save" size={17} />
-                收藏
-              </button>
-              {selected.status === 'approved' ? (
-                <button className="text-button" onClick={() => share(selected)}>
-                  分享
+                  {sleepMinutes === -1 ? '本集结束后' : `${sleepMinutes} 分钟定时`} · 取消
                 </button>
               ) : null}
-              <button className="text-button danger" onClick={() => report(selected)}>
-                举报
+              <button
+                className="icon-button"
+                aria-label="关闭播放器"
+                onClick={() => {
+                  audioRef.current?.pause();
+                  window.speechSynthesis?.cancel();
+                  speechRef.current = null;
+                  setIsPlaying(false);
+                  setPlaying(null);
+                }}
+              >
+                <Icon name="close" />
               </button>
             </div>
-            {selected.demo ? (
-              <p className="small-note">
-                示例人物与日期用于产品演示；音频为 HeyGen AI 生成，非真实用户投稿。
-              </p>
-            ) : null}
-          </section>
-        </div>
-      ) : null}
-    </>
+          ) : null}
+          {postcard ? <VoicePostcard voice={postcard} onClose={() => setPostcard(null)} /> : null}
+          {toast ? (
+            <div className="toast" role="status">
+              <Icon name="sun" size={18} />
+              {toast}
+              <button className="icon-button" aria-label="关闭提示" onClick={() => setToast('')}>
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+          ) : null}
+          {authOpen ? (
+            <AuthDialog
+              onClose={() => {
+                setAuthOpen(false);
+                void loadMe();
+              }}
+              onComplete={completeAuth}
+              onRules={() => {
+                setAuthOpen(false);
+                navigate('about');
+              }}
+            />
+          ) : null}
+          {selected ? (
+            <div
+              className="modal-backdrop"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setSelected(null);
+              }}
+            >
+              <section
+                className="voice-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="声音详情"
+                tabIndex={-1}
+                ref={modalRef}
+              >
+                <button
+                  className="modal-close icon-button"
+                  aria-label="关闭声音详情"
+                  onClick={() => setSelected(null)}
+                >
+                  <Icon name="close" />
+                </button>
+                <span className="detail-mood">{selected.mood}</span>
+                <h2>
+                  <span data-original className="original-text">
+                    {selected.title}
+                  </span>
+                </h2>
+                <p className="detail-signature">
+                  <span data-original className="original-text">
+                    {selected.signature}
+                  </span>{' '}
+                  · 录制于 {dateLabel(selected.recordedAt)}
+                </p>
+                <div className="detail-player">
+                  <button
+                    className="play-button"
+                    onClick={() => play(selected)}
+                    aria-label="播放详情声音"
+                  >
+                    <Icon
+                      name={playing?.id === selected.id && isPlaying ? 'pause' : 'play'}
+                      fill={!(playing?.id === selected.id && isPlaying)}
+                    />
+                  </button>
+                  <Wave
+                    progress={playing?.id === selected.id ? position / (audioDuration || 1) : 0}
+                  />
+                  <span>{durationLabel(selected.duration)}</span>
+                </div>
+                {selected.topic === 'podcast' &&
+                podcastChapters(selected.transcript, selected.duration).length ? (
+                  <div className="podcast-chapters" aria-label="节目章节">
+                    <h3>从这一章开始</h3>
+                    {podcastChapters(selected.transcript, selected.duration).map((c) => (
+                      <button
+                        key={c.seconds}
+                        onClick={async () => {
+                          if (playing?.id !== selected.id) await play(selected);
+                          const a = audioRef.current;
+                          if (a && Number.isFinite(a.duration)) {
+                            a.currentTime = c.seconds;
+                            void a.play().catch(() => notify('请点击播放开始倾听。'));
+                          }
+                        }}
+                      >
+                        {durationLabel(c.seconds)} ·{' '}
+                        <span data-original className="original-text">
+                          {c.title}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="transcript">
+                  <h3>安静地读一读</h3>
+                  <p>
+                    <span data-original={!!selected.transcript}>
+                      {selected.transcript || '这段声音暂未提供文字稿，你可以播放原录音。'}
+                    </span>
+                  </p>
+                </div>
+                {selected.source ? (
+                  <p className="small-note">
+                    出处：
+                    <span data-original className="original-text">
+                      {selected.source}
+                    </span>
+                  </p>
+                ) : null}
+                <div className="detail-dates">
+                  <span>录制日期：{dateLabel(selected.recordedAt)}（录制者填写）</span>
+                  <span>
+                    保存时间：
+                    {new Date(selected.createdAt).toLocaleString(
+                      locale === 'en' ? 'en-GB' : 'zh-CN',
+                      {
+                        timeZone: 'Asia/Shanghai',
+                      },
+                    )}{' '}
+                    · 上海时间
+                  </span>
+                  {selected.futureYear ? <span>写给 {selected.futureYear} 年的自己</span> : null}
+                </div>
+                {!selected.demo &&
+                selected.parentId &&
+                own.some((v) => v.id === selected.parentId) ? (
+                  <button
+                    className="text-button"
+                    onClick={() => setSelected(own.find((v) => v.id === selected.parentId) ?? null)}
+                  >
+                    听听当年的那段声音 <Icon name="arrow" size={16} />
+                  </button>
+                ) : null}
+                {own
+                  .filter((v) => v.parentId === selected.id)
+                  .map((v) => (
+                    <button
+                      className="text-button reply-link"
+                      key={v.id}
+                      onClick={() => setSelected(v)}
+                    >
+                      后来留下的回应 · {dateLabel(v.recordedAt)} <Icon name="arrow" size={16} />
+                    </button>
+                  ))}
+                {canMakePostcard(selected) ? (
+                  <button
+                    className="button outline small"
+                    onClick={() => {
+                      setPostcard(selected);
+                      setSelected(null);
+                    }}
+                  >
+                    制作声音明信片
+                  </button>
+                ) : null}
+                <div className="detail-actions">
+                  <button className="button outline small" onClick={() => react(selected, 'heart')}>
+                    <Icon name="heart" size={17} />
+                    给了我力量
+                  </button>
+                  <button className="button outline small" onClick={() => react(selected, 'save')}>
+                    <Icon name="save" size={17} />
+                    收藏
+                  </button>
+                  {selected.status === 'approved' ? (
+                    <button className="text-button" onClick={() => share(selected)}>
+                      分享
+                    </button>
+                  ) : null}
+                  <button className="text-button danger" onClick={() => report(selected)}>
+                    举报
+                  </button>
+                </div>
+                {selected.demo ? (
+                  <p className="small-note">
+                    示例人物与日期用于产品演示；音频为 HeyGen AI 生成，非真实用户投稿。
+                  </p>
+                ) : null}
+              </section>
+            </div>
+          ) : null}
+        </>
+      }
+    </LocalizedView>
   );
 }
