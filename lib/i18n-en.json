@@ -685,5 +685,11 @@
   "频道审核分页": "Channel review pages",
   "举报分页": "Report pages",
   "只能举报已公开的声音": "Only public voices can be reported",
-  "内容已撤回或不可用": "Content was withdrawn or is unavailable"
+  "内容已撤回或不可用": "Content was withdrawn or is unavailable",
+  "消息位置无效，请刷新频道后重试。": "The message position is invalid. Refresh the channel and try again.",
+  "返回最新消息 ↻": "Back to latest messages ↻",
+  "正在查看历史，自动更新已暂停。返回最新消息后继续更新。": "Auto-refresh is paused while you read history. Return to the latest messages to resume.",
+  "正在翻找更早的留言…": "Loading earlier messages…",
+  "查看更早的留言": "Read earlier messages",
+  "已经到频道最早的留言了。": "You have reached the beginning of this channel."
 }

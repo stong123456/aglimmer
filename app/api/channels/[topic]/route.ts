@@ -13,23 +13,35 @@ import {
 } from '@/lib/server';
 import { getTopic } from '@/lib/topics';
 import { blockedReason, validImage, type ChannelMessage } from '@/lib/moderation';
+import {
+  CHANNEL_PAGE_SIZE,
+  compareChannelMessages,
+  encodeChannelCursor,
+  olderChannelRows,
+  parseChannelCursor,
+} from '@/lib/channel-history';
 export async function GET(req: Request, c: { params: Promise<{ topic: string }> }) {
   try {
     const { topic } = await c.params;
     if (!getTopic(topic)) throw new HttpError(404, '频道不存在');
     const u = await identity();
+    const before = new URL(req.url).searchParams.get('before');
+    const cursor = before === null ? null : parseChannelCursor(before);
+    if (before !== null && !cursor) throw new HttpError(400, '消息位置无效，请刷新频道后重试。');
+    const messagePage = olderChannelRows(cursor, 'm');
+    const voicePage = olderChannelRows(cursor, 'v', 'v.');
     const [rows, voiceRows] = await Promise.all([
       db()
         .prepare(
-          "SELECT * FROM messages WHERE topic=? AND (status='approved' OR owner_id=?) ORDER BY created_at DESC LIMIT 60",
+          `SELECT * FROM messages WHERE topic=? AND (status='approved' OR owner_id=?)${messagePage.sql} ORDER BY created_at DESC,id DESC LIMIT ${CHANNEL_PAGE_SIZE + 1}`,
         )
-        .bind(topic, u?.userId ?? '')
+        .bind(topic, u?.userId ?? '', ...messagePage.values)
         .all(),
       db()
         .prepare(
-          `${SELECT} WHERE v.topic=? AND v.visibility='public' AND (v.status='approved' OR v.owner_id=?) ORDER BY v.created_at DESC LIMIT 60`,
+          `${SELECT} WHERE v.topic=? AND v.visibility='public' AND (v.status='approved' OR v.owner_id=?)${voicePage.sql} ORDER BY v.created_at DESC,v.id DESC LIMIT ${CHANNEL_PAGE_SIZE + 1}`,
         )
-        .bind(topic, u?.userId ?? '')
+        .bind(topic, u?.userId ?? '', ...voicePage.values)
         .all(),
     ]);
     const messages: ChannelMessage[] = rows.results.map((r) => ({
@@ -55,8 +67,13 @@ export async function GET(req: Request, c: { params: Promise<{ topic: string }> 
         mine: r.owner_id === u?.userId,
         voice: toVoice(r),
       });
+    const ordered = messages.sort((a, b) => -compareChannelMessages(a, b));
+    const page = ordered.slice(0, CHANNEL_PAGE_SIZE);
+    const nextCursor =
+      ordered.length > CHANNEL_PAGE_SIZE ? encodeChannelCursor(page[page.length - 1]) : null;
     return json({
-      messages: messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).slice(-60),
+      messages: page.reverse(),
+      nextCursor,
     });
   } catch (e) {
     return fail(e);

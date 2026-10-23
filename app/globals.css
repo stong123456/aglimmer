@@ -2441,6 +2441,25 @@ footer > button:last-child {
   text-align: center;
   line-height: 1.9;
 }
+.channel-history-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 10px 8px 16px;
+  border-bottom: 1px solid var(--tone-211);
+  color: var(--tone-76);
+  text-align: center;
+}
+.channel-history-controls p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.channel-history-controls .text-button {
+  min-height: 36px;
+}
 .channel-empty {
   text-align: center;
   padding: 25px 15px;

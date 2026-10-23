@@ -1,11 +1,12 @@
 'use client';
 import { LocalizedView, usePreferences } from './preferences';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Topic } from '@/lib/topics';
 import type { ChannelMessage } from '@/lib/moderation';
 import { type Voice, durationLabel } from '@/lib/shared';
 import { audioMime } from '@/lib/audio-file';
 import { webmDuration } from '@/lib/audio-duration';
+import { channelMessageKey, mergeChannelMessages } from '@/lib/channel-history';
 async function api(url: string, options?: RequestInit) {
   const r = await fetch(url, options);
   const d = (await r.json()) as any;
@@ -35,6 +36,10 @@ export default function TopicChannel({
   const [messages, setMessages] = useState<ChannelMessage[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
+    [historyCursor, setHistoryCursor] = useState<string | null>(null),
+    [historyLoading, setHistoryLoading] = useState(false),
+    [historyError, setHistoryError] = useState(''),
+    [viewingHistory, setViewingHistory] = useState(false),
     [tab, setTab] = useState<'text' | 'voice' | 'image'>('text'),
     [body, setBody] = useState(''),
     [image, setImage] = useState<File | null>(null),
@@ -52,29 +57,110 @@ export default function TopicChannel({
     started = useRef(0),
     audioInput = useRef<HTMLInputElement>(null),
     imageInput = useRef<HTMLInputElement>(null),
-    mounted = useRef(true);
-  async function refresh(initial = false) {
+    mounted = useRef(true),
+    epoch = useRef(0),
+    refreshRequest = useRef(0),
+    historyRequest = useRef(0),
+    historyMode = useRef(false),
+    historyBusy = useRef(false),
+    messageList = useRef<HTMLDivElement>(null),
+    scrollAnchor = useRef<{ element: HTMLElement; top: number } | null>(null);
+  async function refresh(initial = false, resetHistory = false) {
+    if (resetHistory) {
+      historyMode.current = false;
+      historyBusy.current = false;
+      historyRequest.current++;
+      scrollAnchor.current = null;
+      setMessages([]);
+      setViewingHistory(false);
+      setHistoryLoading(false);
+      setHistoryError('');
+      setHistoryCursor(null);
+    } else if (historyMode.current) return;
+    const generation = epoch.current,
+      request = ++refreshRequest.current;
     try {
-      if (initial) setLoading(true);
+      if (initial || resetHistory) setLoading(true);
       const d = await api(`/api/channels/${topic.id}`);
-      if (mounted.current) {
+      if (
+        mounted.current &&
+        generation === epoch.current &&
+        request === refreshRequest.current &&
+        !historyMode.current
+      ) {
         setMessages(d.messages);
+        setHistoryCursor(d.nextCursor ?? null);
         setError('');
       }
     } catch (e) {
-      if (mounted.current) setError((e as Error).message);
+      if (
+        mounted.current &&
+        generation === epoch.current &&
+        request === refreshRequest.current &&
+        !historyMode.current
+      )
+        setError((e as Error).message);
     } finally {
-      if (mounted.current) setLoading(false);
+      if (mounted.current && generation === epoch.current && request === refreshRequest.current)
+        setLoading(false);
     }
   }
+  async function loadOlder() {
+    if (!historyCursor || historyBusy.current || loading) return;
+    const generation = epoch.current,
+      request = ++historyRequest.current;
+    const alreadyViewingHistory = historyMode.current;
+    historyMode.current = true;
+    historyBusy.current = true;
+    setHistoryLoading(true);
+    setHistoryError('');
+    try {
+      const d = await api(`/api/channels/${topic.id}?before=${encodeURIComponent(historyCursor)}`);
+      if (!mounted.current || generation !== epoch.current || request !== historyRequest.current)
+        return;
+      const list = messageList.current;
+      const bounds = list?.getBoundingClientRect();
+      const anchor = Array.from(
+        list?.querySelectorAll<HTMLElement>('[data-channel-key]') ?? [],
+      ).find((element) => {
+        const row = element.getBoundingClientRect();
+        return bounds && row.bottom > bounds.top && row.top < bounds.bottom;
+      });
+      if (anchor)
+        scrollAnchor.current = { element: anchor, top: anchor.getBoundingClientRect().top };
+      setMessages((current) => mergeChannelMessages(d.messages, current));
+      setError('');
+      setHistoryCursor(d.nextCursor ?? null);
+      setViewingHistory(true);
+    } catch (e) {
+      if (mounted.current && generation === epoch.current && request === historyRequest.current) {
+        historyMode.current = alreadyViewingHistory;
+        setHistoryError((e as Error).message);
+      }
+    } finally {
+      if (mounted.current && generation === epoch.current && request === historyRequest.current) {
+        historyBusy.current = false;
+        setHistoryLoading(false);
+      }
+    }
+  }
+  useLayoutEffect(() => {
+    const anchor = scrollAnchor.current;
+    scrollAnchor.current = null;
+    if (anchor?.element.isConnected && messageList.current)
+      messageList.current.scrollTop += anchor.element.getBoundingClientRect().top - anchor.top;
+  }, [messages]);
   useEffect(() => {
     mounted.current = true;
-    void refresh(true);
+    epoch.current++;
+    setMessages([]);
+    void refresh(true, true);
     const interval = setInterval(() => {
       if (!document.hidden) void refresh();
     }, 15000);
     return () => {
       mounted.current = false;
+      epoch.current++;
       clearInterval(interval);
       if (timer.current) clearInterval(timer.current);
       if (recorder.current?.state === 'recording') recorder.current.stop();
@@ -259,7 +345,7 @@ export default function TopicChannel({
       setBlob(null);
       setDuration(0);
       setNotice('已发送，审核后对频道公开。你现在可以看到自己的待审核消息。');
-      await refresh();
+      await refresh(false, true);
     } catch (e) {
       setNotice((e as Error).message);
     } finally {
@@ -290,7 +376,11 @@ export default function TopicChannel({
       await api(m.kind === 'voice' ? `/api/voices/${m.id}` : `/api/messages/${m.id}`, {
         method: 'DELETE',
       });
-      await refresh();
+      if (historyMode.current)
+        setMessages((current) =>
+          current.filter((item) => channelMessageKey(item) !== channelMessageKey(m)),
+        );
+      else await refresh();
     } catch (e) {
       setNotice((e as Error).message);
     }
@@ -316,16 +406,35 @@ export default function TopicChannel({
           </div>
           <div className="channel-layout">
             <div className="channel-main">
-              <div className="channel-stream" aria-label="频道消息">
+              <div className="channel-stream" aria-label="频道消息" ref={messageList}>
                 <div className="channel-stream-title">
                   <h2>在这里，说两句</h2>
-                  <button className="text-button" onClick={() => refresh(true)}>
-                    刷新频道 ↻
+                  <button className="text-button" onClick={() => refresh(true, true)}>
+                    {viewingHistory ? '返回最新消息 ↻' : '刷新频道 ↻'}
                   </button>
                 </div>
                 <div className="channel-welcome">
                   欢迎来到「{topic.name}」。可以轻松交流，也请尊重正在屏幕另一端的每个人。
                 </div>
+                {!loading && (historyCursor || viewingHistory) ? (
+                  <div className="channel-history-controls">
+                    {viewingHistory ? (
+                      <p role="status">正在查看历史，自动更新已暂停。返回最新消息后继续更新。</p>
+                    ) : null}
+                    {historyCursor ? (
+                      <button className="text-button" disabled={historyLoading} onClick={loadOlder}>
+                        {historyLoading ? '正在翻找更早的留言…' : '查看更早的留言'}
+                      </button>
+                    ) : (
+                      <p>已经到频道最早的留言了。</p>
+                    )}
+                  </div>
+                ) : null}
+                {historyError ? (
+                  <p className="channel-error" role="alert">
+                    {historyError}
+                  </p>
+                ) : null}
                 {error ? (
                   <p className="channel-error" role="alert">
                     {error}
@@ -335,7 +444,11 @@ export default function TopicChannel({
                   <p className="loading">正在打开频道…</p>
                 ) : messages.length ? (
                   messages.map((m) => (
-                    <article className={`chat-message ${m.mine ? 'my-message' : ''}`} key={m.id}>
+                    <article
+                      className={`chat-message ${m.mine ? 'my-message' : ''}`}
+                      key={channelMessageKey(m)}
+                      data-channel-key={channelMessageKey(m)}
+                    >
                       <span className="chat-avatar">{m.signature.slice(0, 1)}</span>
                       <div className="chat-message-content">
                         <div className="chat-byline">
@@ -411,7 +524,7 @@ export default function TopicChannel({
                       </div>
                     </article>
                   ))
-                ) : (
+                ) : error ? null : (
                   <div className="channel-empty">
                     <span>◌</span>
                     <h3>第一句话，留给你。</h3>
