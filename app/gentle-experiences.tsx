@@ -146,7 +146,7 @@ export function VoiceRings({
             })}
           </div>
           <p className="small-note">
-            年轮通过相同问题和独立录音整理，不会覆盖过去的回答。回听提醒尚未启用。
+            年轮通过相同问题和独立录音整理，不会覆盖过去的回答。录音详情里可以下载日历回听提醒。
           </p>
         </section>
       }

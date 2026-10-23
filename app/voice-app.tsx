@@ -29,6 +29,9 @@ import AccountClosure from './account-closure';
 import AdminOperations from './admin-operations';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
+import { AnnualRecap, CalendarReminder } from './memory-tools';
+import QuoteLibrary from './quote-library';
+import { QUOTE_THEMES, type ClassicQuote } from '@/lib/quotes';
 import { podcastChapters, resumePosition } from '@/lib/podcast';
 import PodcastShelf from './podcast-shelf';
 import AuthDialog from './auth-dialog';
@@ -38,10 +41,19 @@ import { webmDuration } from '@/lib/audio-duration';
 
 import { useEffect, useRef, useState } from 'react';
 import { MOODS, PROMPTS, type Voice, dateLabel, durationLabel } from '@/lib/shared';
-import { readDraft, writeDraft } from '@/lib/draft';
-import { makeZip, download } from '@/lib/zip';
+import { readDraft, readLegacyDraft, writeDraft } from '@/lib/draft';
+import { makeVerifiedZip, download } from '@/lib/zip';
 
-type View = 'wall' | 'inspiration' | 'archive' | 'studio' | 'admin' | 'about' | 'topic' | 'podcast';
+type View =
+  | 'wall'
+  | 'inspiration'
+  | 'archive'
+  | 'studio'
+  | 'admin'
+  | 'about'
+  | 'topic'
+  | 'podcast'
+  | 'quotes';
 type User = { nickname: string; userId: string; admin: boolean; avatarUrl?: string | null };
 type Draft = {
   title: string;
@@ -143,7 +155,7 @@ export default function VoiceApp() {
   const progressWrite = useRef(0);
   useEffect(() => {
     if (sleepMinutes <= 0) return;
-    const tick = setInterval(() => {
+    const check = () => {
       if (Date.now() >= sleepDeadline.current) {
         audioRef.current?.pause();
         window.speechSynthesis?.cancel();
@@ -151,11 +163,18 @@ export default function VoiceApp() {
         setSleepMinutes(0);
         notify('睡眠定时已暂停播放。晚安。');
       }
-    }, 1000);
-    return () => clearInterval(tick);
+    };
+    const tick = setInterval(check, 1000);
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
   }, [sleepMinutes]);
   function createPodcast() {
-    if (draft.title || blob) {
+    if (hasDraft()) {
       notify('请先保存或清空现有草稿，再开始播客。');
       navigate('studio');
       return;
@@ -171,6 +190,8 @@ export default function VoiceApp() {
     [saved, setSaved] = useState<Voice[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
+    [wallCursor, setWallCursor] = useState<string | null>(null),
+    [wallMoreLoading, setWallMoreLoading] = useState(false),
     [mood, setMood] = useState(''),
     [mode, setMode] = useState('featured'),
     [topicId, setTopicId] = useState(''),
@@ -261,6 +282,8 @@ export default function VoiceApp() {
     }
   }, [playing, isPlaying]);
   const modalRef = useRef<HTMLElement>(null);
+  const meRequestRef = useRef(0);
+  const draftScopeRef = useRef<string | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [draft, setDraft] = useState<Draft>(initialDraft),
     [blob, setBlob] = useState<Blob | null>(null),
@@ -269,6 +292,7 @@ export default function VoiceApp() {
     [recording, setRecording] = useState(false),
     [recordSeconds, setRecordSeconds] = useState(0),
     [draftLoaded, setDraftLoaded] = useState(false),
+    [legacyDraftAvailable, setLegacyDraftAvailable] = useState(false),
     [promptIndex, setPromptIndex] = useState(0),
     [consent, setConsent] = useState(false),
     [submitMessage, setSubmitMessage] = useState('');
@@ -277,7 +301,63 @@ export default function VoiceApp() {
     timerRef = useRef<ReturnType<typeof setInterval> | null>(null),
     startedRef = useRef(0),
     uploadRef = useRef<HTMLInputElement>(null);
+  const priorAccount = useRef<string | null>(null);
+  useEffect(() => {
+    const prior = priorAccount.current;
+    priorAccount.current = user?.userId ?? null;
+    if (prior && prior !== user?.userId) {
+      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.removeAttribute('src');
+      window.speechSynthesis?.cancel();
+      setPlaying(null);
+      setSelected(null);
+      setPostcard(null);
+      setIsPlaying(false);
+      setSleepMinutes(0);
+      setAdminVoices([]);
+      setReports([]);
+      setAdminMessages([]);
+    }
+  }, [user?.userId]);
   const notify = (s: string) => setToast(s);
+  useEffect(() => {
+    const stop = () => {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    };
+    window.addEventListener('glimmer:external-play', stop);
+    return () => window.removeEventListener('glimmer:external-play', stop);
+  }, []);
+  function hasDraft() {
+    return !!(
+      blob ||
+      draft.title.trim() ||
+      draft.transcript.trim() ||
+      draft.source.trim() ||
+      draft.parentId
+    );
+  }
+  function startFromQuote(quote: ClassicQuote) {
+    if (!draftLoaded) {
+      notify('正在恢复此账户的草稿…');
+      return;
+    }
+    if (hasDraft()) {
+      notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
+      navigate('studio');
+      return;
+    }
+    setDraft({
+      ...initialDraft(),
+      signature: user?.nickname ?? '',
+      title: ('听《' + quote.work + '》有感').slice(0, 60),
+      transcript: '',
+      mood: QUOTE_THEMES.find((t) => t.id === quote.theme)!.mood,
+      source: `${quote.author}《${quote.work}》；听后感灵感来源；${quote.sourceUrl}`.slice(0, 300),
+    });
+    setConsent(false);
+    navigate('studio');
+  }
   const openAuth = () => {
     setSelected(null);
     setAuthOpen(true);
@@ -295,9 +375,29 @@ export default function VoiceApp() {
   async function logout() {
     try {
       await api('/api/auth/logout', { method: 'POST' });
+      meRequestRef.current++;
+      audioRef.current?.pause();
+      audioRef.current?.removeAttribute('src');
+      audioRef.current?.load();
+      window.speechSynthesis?.cancel();
+      speechRef.current = null;
+      setPlaying(null);
+      setIsPlaying(false);
+      setSelected(null);
+      setPostcard(null);
+      setSleepMinutes(0);
+      setDraftLoaded(false);
+      setDraft(initialDraft());
+      setBlob(null);
+      setDuration(0);
+      setConsent(false);
       setUser(null);
       setOwn([]);
       setSaved([]);
+      setAdminVoices([]);
+      setAdminMessages([]);
+      setReports([]);
+      adminRequestRef.current++;
       void loadWall();
       notify('已退出当前设备。');
     } catch (e) {
@@ -334,8 +434,10 @@ export default function VoiceApp() {
   }, [view]);
   const update = (key: keyof Draft, value: string) => setDraft((d) => ({ ...d, [key]: value }));
   async function loadMe(strict = false) {
+    const requestId = ++meRequestRef.current;
     try {
       const data = await api('/api/me');
+      if (requestId !== meRequestRef.current) return null;
       setUser(data.user);
       setOwn(data.voices ?? []);
       setSaved(data.saved ?? []);
@@ -344,6 +446,7 @@ export default function VoiceApp() {
       if (data.user) setDraft((d) => ({ ...d, signature: d.signature || data.user.nickname }));
       return data.user;
     } catch (e) {
+      if (requestId !== meRequestRef.current) return null;
       setMeLoaded(true);
       notify((e as Error).message);
       if (strict) throw e;
@@ -355,15 +458,42 @@ export default function VoiceApp() {
     const requestId = ++wallRequestRef.current;
     setLoading(true);
     setError('');
+    setWallCursor(null);
+    setWallMoreLoading(false);
     try {
       const params = new URLSearchParams({ mode });
       if (mood) params.set('mood', mood);
+      if (query.trim()) params.set('q', query.trim());
       const data = await api(`/api/voices?${params}`);
-      if (requestId === wallRequestRef.current) setVoices(data.voices);
+      if (requestId === wallRequestRef.current) {
+        setVoices(data.voices);
+        setWallCursor(data.nextCursor ?? null);
+      }
     } catch (e) {
       if (requestId === wallRequestRef.current) setError((e as Error).message);
     } finally {
       if (requestId === wallRequestRef.current) setLoading(false);
+    }
+  }
+  async function loadMoreVoices() {
+    if (!wallCursor || loading || wallMoreLoading) return;
+    const requestId = wallRequestRef.current;
+    setWallMoreLoading(true);
+    setError('');
+    try {
+      const params = new URLSearchParams({ mode, before: wallCursor });
+      if (mood) params.set('mood', mood);
+      if (query.trim()) params.set('q', query.trim());
+      const data = await api('/api/voices?' + params);
+      if (requestId !== wallRequestRef.current) return;
+      setVoices((current) => [
+        ...new Map([...current, ...data.voices].map((v: Voice) => [v.id, v])).values(),
+      ]);
+      setWallCursor(data.nextCursor ?? null);
+    } catch (e) {
+      if (requestId === wallRequestRef.current) setError((e as Error).message);
+    } finally {
+      if (requestId === wallRequestRef.current) setWallMoreLoading(false);
     }
   }
   async function loadAdmin() {
@@ -445,9 +575,17 @@ export default function VoiceApp() {
       const p = new URLSearchParams(location.search);
       const v = p.get('view');
       setView(
-        ['wall', 'inspiration', 'archive', 'studio', 'admin', 'about', 'topic', 'podcast'].includes(
-          v ?? '',
-        )
+        [
+          'wall',
+          'inspiration',
+          'archive',
+          'studio',
+          'admin',
+          'about',
+          'topic',
+          'podcast',
+          'quotes',
+        ].includes(v ?? '')
           ? (v as View)
           : 'wall',
       );
@@ -464,8 +602,13 @@ export default function VoiceApp() {
     return () => window.removeEventListener('popstate', readUrl);
   }, []);
   useEffect(() => {
-    void loadWall();
-  }, [mood, mode]);
+    wallRequestRef.current++;
+    setLoading(true);
+    setWallCursor(null);
+    setWallMoreLoading(false);
+    const timer = setTimeout(() => void loadWall(), query.trim() ? 250 : 0);
+    return () => clearTimeout(timer);
+  }, [mood, mode, query]);
   useEffect(() => {
     if (view === 'archive') void loadMe();
     if (view === 'admin' && user?.admin) void loadAdmin();
@@ -476,22 +619,56 @@ export default function VoiceApp() {
     return () => clearTimeout(t);
   }, [toast]);
   useEffect(() => {
-    readDraft()
-      .then((d) => {
-        if (d) {
-          setDraft({ ...initialDraft(), ...d.draft });
-          setBlob(d.blob ?? null);
-          setDuration(d.duration ?? 0);
-        }
-        setDraftLoaded(true);
-      })
-      .catch(() => setDraftLoaded(true));
+    void readLegacyDraft()
+      .then((d) => setLegacyDraftAvailable(!!d))
+      .catch(() => {});
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
+  useEffect(() => {
+    if (!meLoaded) return;
+    const scope = user?.userId ?? 'guest';
+    if (scope === draftScopeRef.current) return;
+    const previous = draftScopeRef.current;
+    const guestDraft =
+      previous === 'guest' && scope !== 'guest' && hasDraft() ? { draft, blob, duration } : null;
+    draftScopeRef.current = scope;
+    let cancelled = false;
+    setDraftLoaded(false);
+    setConsent(false);
+    async function restore() {
+      try {
+        const existing = await readDraft(scope);
+        if (cancelled) return;
+        const saved = existing ?? guestDraft;
+        setDraft({ ...initialDraft(), signature: user?.nickname ?? '', ...saved?.draft });
+        setBlob(saved?.blob ?? null);
+        setDuration(saved?.duration ?? 0);
+        if (guestDraft && !existing) {
+          await writeDraft(guestDraft, scope);
+          await writeDraft(null, 'guest');
+        } else if (guestDraft && existing) {
+          notify('已恢复此账户的草稿。登录前的草稿仍保存在本机游客工作台。');
+        }
+      } catch {
+        if (!cancelled) {
+          setDraft({ ...initialDraft(), signature: user?.nickname ?? '' });
+          setBlob(null);
+          setDuration(0);
+          notify('此浏览器不能恢复本地草稿，请及时下载录音。');
+        }
+      } finally {
+        if (!cancelled) setDraftLoaded(true);
+      }
+    }
+    void restore();
+    return () => {
+      cancelled = true;
+    };
+  }, [meLoaded, user?.userId]);
   useEffect(() => {
     if (!blob) {
       setBlobUrl('');
@@ -502,14 +679,16 @@ export default function VoiceApp() {
     return () => URL.revokeObjectURL(url);
   }, [blob]);
   useEffect(() => {
-    if (!draftLoaded || !blob) return;
+    if (!draftLoaded) return;
+    const scope = draftScopeRef.current;
+    if (!scope || scope !== (user?.userId ?? 'guest')) return;
     const t = setTimeout(() => {
-      writeDraft({ draft, blob, duration }).catch(() =>
+      writeDraft(hasDraft() ? { draft, blob, duration } : null, scope).catch(() =>
         notify('此浏览器不能保存本地草稿，请在离开前下载录音。'),
       );
     }, 350);
     return () => clearTimeout(t);
-  }, [draft, blob, duration, draftLoaded]);
+  }, [draft, blob, duration, draftLoaded, user?.userId]);
   useEffect(() => {
     if (!selected) return;
     const old = document.body.style.overflow;
@@ -555,9 +734,12 @@ export default function VoiceApp() {
     if (view !== 'studio' && recorderRef.current?.state === 'recording') recorderRef.current.stop();
   }, [view]);
   async function play(v: Voice) {
+    window.dispatchEvent(new Event('glimmer:audio-play'));
     const a = audioRef.current;
     if (!a) return;
-    document.querySelector<HTMLAudioElement>('.recorder audio')?.pause();
+    document.querySelectorAll<HTMLAudioElement>('audio').forEach((item) => {
+      if (item !== a) item.pause();
+    });
     if (v.demo && !v.audioUrl) {
       if (!window.speechSynthesis) {
         notify('当前浏览器不支持示例朗读，可以查看文字稿或上传真实录音体验。');
@@ -841,7 +1023,7 @@ export default function VoiceApp() {
     }
     if (!user) {
       try {
-        await writeDraft({ draft, blob, duration });
+        await writeDraft({ draft, blob, duration }, draftScopeRef.current ?? 'guest');
         openAuth();
       } catch {
         notify('无法保存草稿，请先下载录音再登录。');
@@ -859,7 +1041,9 @@ export default function VoiceApp() {
       Object.entries(draft).forEach(([k, v]) => form.set(k, v));
       form.set('duration', String(duration));
       const result = await api('/api/voices', { method: 'POST', body: form });
-      await writeDraft(null);
+      await writeDraft(null, draftScopeRef.current ?? 'guest').catch(() =>
+        notify('声音已保存，但本地草稿清理失败。请勿重复提交。'),
+      );
       setBlob(null);
       setDuration(0);
       setDraft({ ...initialDraft(), signature: user.nickname });
@@ -903,6 +1087,66 @@ export default function VoiceApp() {
       notify('已设为仅自己可见。');
     } catch (e) {
       notify((e as Error).message);
+    }
+  }
+  async function requestPublication(v: Voice) {
+    if (
+      !window.confirm(t('申请公开后，审核员可以听到这段声音。通过审核后才会对陌生人公开，继续吗？'))
+    )
+      return;
+    setBusy(true);
+    try {
+      await api(`/api/voices/${v.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'publish' }),
+      });
+      await loadMe();
+      notify('已申请公开，正在等待人工审核。');
+    } catch (e) {
+      notify((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function discardDraft() {
+    if (!window.confirm(t('清空会移除此工作台的本地草稿。已保存的声音不受影响，继续吗？'))) return;
+    try {
+      await writeDraft(null, draftScopeRef.current ?? 'guest');
+      setDraft({ ...initialDraft(), signature: user?.nickname ?? '' });
+      setBlob(null);
+      setDuration(0);
+      setConsent(false);
+      setStudioStep(1);
+      notify('当前工作台的草稿已清空。');
+    } catch {
+      notify('本地草稿未能清空，请稍后重试。');
+    }
+  }
+  async function restoreLegacyDraft() {
+    if (
+      !window.confirm(
+        t(
+          '升级前的本机草稿没有账户标识。请确认这台设备保存的是你的草稿。恢复会替换当前工作台，继续吗？',
+        ),
+      )
+    )
+      return;
+    try {
+      const saved = await readLegacyDraft();
+      if (!saved) {
+        setLegacyDraftAvailable(false);
+        return;
+      }
+      await writeDraft(saved, draftScopeRef.current ?? 'guest');
+      setDraft({ ...initialDraft(), ...saved.draft });
+      setBlob(saved.blob ?? null);
+      setDuration(saved.duration ?? 0);
+      setConsent(false);
+      setLegacyDraftAvailable(false);
+      notify('升级前的本机草稿已恢复到当前工作台。');
+    } catch {
+      notify('此浏览器不能恢复本地草稿，请及时下载录音。');
     }
   }
   async function saveNickname() {
@@ -954,7 +1198,10 @@ export default function VoiceApp() {
         if (!r.ok) throw new Error(`第 ${i + 1} 段音频导出失败，请重试`);
         const bytes = new Uint8Array(await r.arrayBuffer());
         if (size + bytes.length > 40 * 1024 * 1024) {
-          download(makeZip(files), `一点光-档案-${part++}.zip`);
+          download(
+            await makeVerifiedZip(files, { exportedAt: data.exportedAt, part }),
+            `一点光-档案-${part++}.zip`,
+          );
           files = [{ name: 'archive.json', data: meta }];
           size = meta.length;
         }
@@ -974,8 +1221,11 @@ export default function VoiceApp() {
         files.push({ name: `${v.folder}/${v.recorded_at}-${v.id}.${ext}`, data: bytes });
         size += bytes.length;
       }
-      download(makeZip(files), `一点光-档案-${part}.zip`);
-      notify('档案已导出，包含原音频、时间、署名和文字。大档案会分卷下载。');
+      download(
+        await makeVerifiedZip(files, { exportedAt: data.exportedAt, part }),
+        `一点光-档案-${part}.zip`,
+      );
+      notify('档案已导出，包含原音频、时间、署名和逐文件校验清单。请保留所有分卷。');
     } catch (e) {
       notify((e as Error).message);
     } finally {
@@ -1000,17 +1250,28 @@ export default function VoiceApp() {
     }
   }
   function reply(v: Voice) {
+    if (hasDraft()) {
+      notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
+      navigate('studio');
+      return;
+    }
     setDraft({
       ...initialDraft(),
       signature: user?.nickname ?? '',
       title: `回应：${v.title}`.slice(0, 60),
       mood: '给未来的我',
       parentId: v.id,
+      visibility: 'private',
+      topic: v.topic === 'podcast' ? 'podcast' : '',
     });
     navigate('studio');
   }
   const filtered = voices.filter(
-    (v) => !query || `${v.title}${v.signature}${v.transcript}`.includes(query),
+    (v) =>
+      !query.trim() ||
+      `${v.title}${v.signature}${v.transcript}`
+        .toLocaleLowerCase()
+        .includes(query.trim().toLocaleLowerCase()),
   );
   const archiveList = (
     archiveTab === 'saved'
@@ -1125,7 +1386,13 @@ export default function VoiceApp() {
               >
                 下载
               </button>
-              {v.visibility === 'public' ? <button onClick={() => hide(v)}>转为私密</button> : null}
+              {v.visibility === 'public' ? (
+                <button onClick={() => hide(v)}>转为私密</button>
+              ) : (
+                <button disabled={busy} onClick={() => void requestPublication(v)}>
+                  申请公开
+                </button>
+              )}
               <button className="danger" onClick={() => remove(v)} aria-label={`删除${v.title}`}>
                 <Icon name="trash" size={16} />
               </button>
@@ -1170,7 +1437,13 @@ export default function VoiceApp() {
               {(['wall', 'podcast', 'inspiration', 'archive'] as View[]).map((v, i) => (
                 <button
                   key={v}
-                  className={view === v || (view === 'topic' && v === 'wall') ? 'current' : ''}
+                  className={
+                    view === v ||
+                    (view === 'topic' && v === 'wall') ||
+                    (view === 'quotes' && v === 'inspiration')
+                      ? 'current'
+                      : ''
+                  }
                   onClick={() => navigate(v)}
                 >
                   {['声音墙', '慢慢听', '灵感信箱', '我的声音'][i]}
@@ -1236,8 +1509,7 @@ export default function VoiceApp() {
                           <strong data-original>{voices[0].title}</strong>
                           <small>
                             <span data-original>{voices[0].signature}</span> ·{' '}
-                            {dateLabel(voices[0].recordedAt)} ·{' '}
-                            {voices[0].demo ? 'AI 示例朗读' : durationLabel(voices[0].duration)}
+                            {dateLabel(voices[0].recordedAt)} · {durationLabel(voices[0].duration)}
                           </small>
                         </div>
                       </div>
@@ -1272,6 +1544,14 @@ export default function VoiceApp() {
                     voices={voices}
                     playingId={playing?.id}
                     onPlay={(v) => void play(v)}
+                  />
+                  <QuoteLibrary
+                    compact
+                    onExplore={() => navigate('quotes')}
+                    onStart={startFromQuote}
+                    onPlay={(v) => void play(v)}
+                    playingId={playing?.id}
+                    isPlaying={isPlaying}
                   />
                   <div className="podcast-invite">
                     <div>
@@ -1353,6 +1633,8 @@ export default function VoiceApp() {
                     <div className="wall-tools">
                       <input
                         aria-label="搜索声音"
+                        type="search"
+                        maxLength={100}
                         placeholder="找一句想听的话"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
@@ -1396,10 +1678,18 @@ export default function VoiceApp() {
                     </div>
                   )}
                   {voices.some((v) => v.demo) ? (
-                    <p className="demo-note">
-                      当前为 AI
-                      示例朗读，分别采用温柔女声、沉稳男声与清亮少年声。真实投稿经审核后展示。
-                    </p>
+                    <p className="demo-note">真实投稿经审核后展示；网络经典请在声音灵感馆收听。</p>
+                  ) : null}
+                  {!loading && wallCursor ? (
+                    <div className="load-more">
+                      <button
+                        className="button outline"
+                        disabled={wallMoreLoading}
+                        onClick={() => void loadMoreVoices()}
+                      >
+                        {wallMoreLoading ? '正在寻找更多声音…' : '再听一些声音'}
+                      </button>
+                    </div>
                   ) : null}
                   <section className="future-banner">
                     <div>
@@ -1409,8 +1699,15 @@ export default function VoiceApp() {
                     <button
                       className="button primary"
                       onClick={() => {
-                        update('mood', '给未来的我');
-                        update('futureYear', String(new Date().getFullYear() + 10));
+                        if (!hasDraft()) {
+                          setDraft({
+                            ...initialDraft(),
+                            signature: user?.nickname ?? '',
+                            mood: '给未来的我',
+                            visibility: 'private',
+                            futureYear: String(new Date().getUTCFullYear() + 10),
+                          });
+                        } else notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
                         navigate('studio');
                       }}
                     >
@@ -1456,17 +1753,20 @@ export default function VoiceApp() {
               )
             ) : null}
             {view === 'podcast' ? (
-              <PodcastShelf
-                onPlay={(v) => void play(v)}
-                onCreate={createPodcast}
-                onDetails={setSelected}
-                playingId={playing?.id}
-                timer={sleepMinutes}
-                onTimer={(minutes) => {
-                  sleepDeadline.current = Date.now() + minutes * 60000;
-                  setSleepMinutes(minutes);
-                }}
-              />
+              <>
+                <PodcastShelf
+                  onPlay={(v) => void play(v)}
+                  onCreate={createPodcast}
+                  onDetails={setSelected}
+                  playingId={playing?.id}
+                  timer={sleepMinutes}
+                  onTimer={(minutes) => {
+                    sleepDeadline.current = Date.now() + minutes * 60000;
+                    setSleepMinutes(minutes);
+                  }}
+                />
+                <QuoteLibrary collection="long" onStart={startFromQuote} />
+              </>
             ) : null}
             {view === 'inspiration' ? (
               <section className="page-section">
@@ -1511,6 +1811,13 @@ export default function VoiceApp() {
                 <div className="section-heading">
                   <h2>总有一句话，适合此刻的你</h2>
                 </div>
+                <div className="classic-invite">
+                  <h2>也可以从一句经典开始。</h2>
+                  <p>收听网络经典与官方演讲，带着出处，把共鸣讲成自己的故事。</p>
+                  <button className="button outline" onClick={() => navigate('quotes')}>
+                    探索双语灵感馆 <Icon name="arrow" size={17} />
+                  </button>
+                </div>
                 <div className="prompt-grid">
                   {PROMPTS.map((p, i) => (
                     <button className="prompt-card" key={p.title} onClick={() => choosePrompt(i)}>
@@ -1532,6 +1839,14 @@ export default function VoiceApp() {
                 </div>
               </section>
             ) : null}
+            {view === 'quotes' ? (
+              <QuoteLibrary
+                onStart={startFromQuote}
+                onPlay={(v) => void play(v)}
+                playingId={playing?.id}
+                isPlaying={isPlaying}
+              />
+            ) : null}
             {view === 'studio' ? (
               <section className="page-section">
                 <div className="page-heading">
@@ -1542,6 +1857,15 @@ export default function VoiceApp() {
                   <h1>{draft.topic === 'podcast' ? '分享一段长声音' : '留下此刻的你'}</h1>
                   <p>今天有人会听见，未来的你也会。</p>
                 </div>
+                {legacyDraftAvailable ? (
+                  <button
+                    className="text-button"
+                    disabled={recording || busy || !draftLoaded}
+                    onClick={() => void restoreLegacyDraft()}
+                  >
+                    恢复升级前的本机草稿
+                  </button>
+                ) : null}
                 {submitMessage ? (
                   <div className="success-panel" role="status">
                     <Icon name="check" size={40} />
@@ -1654,7 +1978,7 @@ export default function VoiceApp() {
                           <div className="record-actions">
                             <button
                               className={`button ${recording ? 'record-stop' : 'primary'}`}
-                              disabled={draft.topic === 'podcast'}
+                              disabled={!draftLoaded || draft.topic === 'podcast'}
                               onClick={recording ? stopRecording : startRecording}
                             >
                               <Icon name={recording ? 'pause' : 'mic'} />
@@ -1668,7 +1992,7 @@ export default function VoiceApp() {
                             </button>
                             <button
                               className="text-button"
-                              disabled={recording}
+                              disabled={recording || !draftLoaded}
                               onClick={() => uploadRef.current?.click()}
                             >
                               <Icon name="upload" size={17} />
@@ -1693,6 +2017,16 @@ export default function VoiceApp() {
                               }
                             >
                               下载这段草稿
+                            </button>
+                          ) : null}
+                          {!draftLoaded ? <p role="status">正在恢复此账户的草稿…</p> : null}
+                          {hasDraft() ? (
+                            <button
+                              className="text-button danger"
+                              disabled={recording || busy || !draftLoaded}
+                              onClick={() => void discardDraft()}
+                            >
+                              清空工作台草稿
                             </button>
                           ) : null}
                         </div>
@@ -1963,11 +2297,17 @@ export default function VoiceApp() {
                       </div>
                       <AccountClosure userId={user.userId} administrator={user.admin} />
                     </details>
+                    <AnnualRecap
+                      key={user.userId}
+                      voices={own}
+                      onPlay={(v) => void play(v)}
+                      onOpen={setSelected}
+                    />
                     <VoiceRings
                       voices={own}
                       onPlay={(v) => void play(v)}
                       onStart={(question, previous) => {
-                        if (draft.title || blob) {
+                        if (hasDraft()) {
                           notify('请先保存或清空工作台里的草稿，再开始年轮录音。');
                           navigate('studio');
                           return;
@@ -2217,6 +2557,19 @@ export default function VoiceApp() {
                               <span data-original>{r.reason}</span>
                             </p>
                           </div>
+                          {String(r.voice_id).startsWith('quote:') ? (
+                            <button
+                              className="button outline small"
+                              onClick={() =>
+                                review(
+                                  String(r.voice_id).slice(6),
+                                  r.classicHidden ? 'restore_classic' : 'hide_classic',
+                                )
+                              }
+                            >
+                              {r.classicHidden ? '恢复素材展示' : '暂停素材展示'}
+                            </button>
+                          ) : null}
                           <button
                             className="button outline small"
                             onClick={() => review(r.id, 'resolve')}
@@ -2264,6 +2617,17 @@ export default function VoiceApp() {
                     未来年份是档案标记，不会把声音锁到那一年；第一版不发送定时邮件。若服务计划停止，应提前公告，并提供至少
                     90 天的导出窗口。
                   </p>
+                  <p>
+                    你可以在录音详情下载日历回听提醒，主动加入自己的日历；也可以下载声音年记和带逐文件
+                    SHA-256 校验清单的完整档案。提醒由你的日历应用管理。
+                  </p>
+                </section>
+                <section>
+                  <h2>经典素材的出处与权利。</h2>
+                  <p>
+                    声音灵感馆整理已有的诗词朗读、官方演讲与电影独白，通过来源播放器展示，不转存或剪辑音轨。中英文为本站导读或公版原句的自主意译，不代表官方字幕。LibriVox
+                    的公有领域声明以美国为依据，其他地区可能不同。每条素材保留来源与使用说明；版权或出处问题可直接反馈，审核员可以暂停展示并核对。
+                  </p>
                 </section>
                 <section>
                   <h2>你可以控制自己的声音。</h2>
@@ -2300,7 +2664,14 @@ export default function VoiceApp() {
           <audio
             ref={audioRef}
             preload="none"
-            onPlay={() => setIsPlaying(true)}
+            onPlay={(e) => {
+              if (sleepMinutes > 0 && Date.now() >= sleepDeadline.current) {
+                e.currentTarget.pause();
+                setSleepMinutes(0);
+                setIsPlaying(false);
+                notify('睡眠定时已暂停播放。晚安。');
+              } else setIsPlaying(true);
+            }}
             onPause={(e) => {
               setIsPlaying(false);
               if (playing?.topic === 'podcast') {
@@ -2451,6 +2822,7 @@ export default function VoiceApp() {
                   speechRef.current = null;
                   setIsPlaying(false);
                   setPlaying(null);
+                  setSleepMinutes(0);
                 }}
               >
                 <Icon name="close" />
@@ -2584,6 +2956,9 @@ export default function VoiceApp() {
                   </span>
                   {selected.futureYear ? <span>写给 {selected.futureYear} 年的自己</span> : null}
                 </div>
+                {!selected.demo && own.some((v) => v.id === selected.id) ? (
+                  <CalendarReminder key={selected.id} voice={selected} />
+                ) : null}
                 {!selected.demo &&
                 selected.parentId &&
                 own.some((v) => v.id === selected.parentId) ? (
@@ -2617,14 +2992,24 @@ export default function VoiceApp() {
                   </button>
                 ) : null}
                 <div className="detail-actions">
-                  <button className="button outline small" onClick={() => react(selected, 'heart')}>
-                    <Icon name="heart" size={17} />
-                    给了我力量
-                  </button>
-                  <button className="button outline small" onClick={() => react(selected, 'save')}>
-                    <Icon name="save" size={17} />
-                    收藏
-                  </button>
+                  {selected.visibility === 'public' && selected.status === 'approved' ? (
+                    <>
+                      <button
+                        className="button outline small"
+                        onClick={() => react(selected, 'heart')}
+                      >
+                        <Icon name="heart" size={17} />
+                        给了我力量
+                      </button>
+                      <button
+                        className="button outline small"
+                        onClick={() => react(selected, 'save')}
+                      >
+                        <Icon name="save" size={17} />
+                        收藏
+                      </button>
+                    </>
+                  ) : null}
                   {selected.status === 'approved' ? (
                     <button className="text-button" onClick={() => share(selected)}>
                       分享
@@ -2635,9 +3020,7 @@ export default function VoiceApp() {
                   </button>
                 </div>
                 {selected.demo ? (
-                  <p className="small-note">
-                    示例人物与日期用于产品演示；音频为 HeyGen AI 生成，非真实用户投稿。
-                  </p>
+                  <p className="small-note">此内容为展示素材，请参考原始来源与使用说明。</p>
                 ) : null}
               </section>
             </div>

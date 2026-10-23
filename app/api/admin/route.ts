@@ -1,5 +1,7 @@
 import { readBody } from '@/lib/server';
 import { adminQuery, pageInfo } from '@/lib/admin-query';
+import { hiddenClassics } from '@/lib/classic-visibility';
+import { CLASSIC_QUOTES } from '@/lib/quotes';
 import {
   db,
   identity,
@@ -66,9 +68,19 @@ export async function GET(req: Request) {
           .prepare("SELECT COUNT(*) n FROM messages WHERE status='pending'")
           .first<{ n: number }>(),
       ]);
+    const classicHidden = await hiddenClassics();
     return json({
       voices: rows.results.map((r) => toVoice(r)),
-      reports: reports.results,
+      reports: reports.results.map((r) => {
+        const quote = CLASSIC_QUOTES.find((q) => 'quote:' + q.id === r.voice_id);
+        return quote
+          ? {
+              ...r,
+              classicHidden: classicHidden.includes(quote.id),
+              title: `经典素材 · ${quote.author} · ${quote.zh}`,
+            }
+          : r;
+      }),
       messages: messages.results,
       pagination: {
         voices: pageInfo(q.voices, voiceCount?.n ?? 0, q.limit),
@@ -86,6 +98,24 @@ export async function POST(req: Request) {
     assertOrigin(req);
     const u = await admin();
     const body = await readBody(req);
+    if (['hide_classic', 'restore_classic'].includes(String(body.action))) {
+      const quote = CLASSIC_QUOTES.find((q) => q.id === body.id);
+      if (!quote) throw new HttpError(404, '没有找到这条经典素材');
+      await db()
+        .prepare(
+          'INSERT INTO audit(id,actor_id,voice_id,action,note,created_at) VALUES(?,?,?,?,?,?)',
+        )
+        .bind(
+          crypto.randomUUID(),
+          u.userId,
+          'quote:' + quote.id,
+          String(body.action),
+          '版权或出处核对',
+          new Date().toISOString(),
+        )
+        .run();
+      return json({ ok: true });
+    }
     if (body.action === 'resolve') {
       await db().prepare('UPDATE reports SET resolved=1 WHERE id=?').bind(String(body.id)).run();
       return json({ ok: true });

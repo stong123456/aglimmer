@@ -64,3 +64,36 @@ export function download(blob: Blob, name: string) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
+
+export async function makeVerifiedZip(
+  files: { name: string; data: Uint8Array }[],
+  metadata: { exportedAt: string; part: number },
+) {
+  const entries = [];
+  const originals = [
+    ...files,
+    {
+      name: 'VERIFY.txt',
+      data: new TextEncoder().encode(
+        'A Glimmer voice archive\nOriginal media files are preserved without transcoding.\nchecksums.json contains SHA-256 and byte lengths for every other file in this volume.\nVerify with the repository tool: python3 scripts/verify-export.py <archive.zip>\nKeep all volumes and an independent backup.\n',
+      ),
+    },
+  ];
+  for (const file of originals) {
+    const digest = await crypto.subtle.digest('SHA-256', file.data as BufferSource);
+    entries.push({
+      path: file.name,
+      bytes: file.data.byteLength,
+      sha256: [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join(''),
+    });
+  }
+  return makeZip([
+    ...originals,
+    {
+      name: 'checksums.json',
+      data: new TextEncoder().encode(
+        JSON.stringify({ version: 1, algorithm: 'SHA-256', ...metadata, files: entries }, null, 2),
+      ),
+    },
+  ]);
+}

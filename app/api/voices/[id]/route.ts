@@ -75,6 +75,32 @@ export async function PATCH(req: Request, c: Context) {
         .run();
       return json({ ok: true });
     }
+    if (body.action === 'publish') {
+      if (v.owner_id !== u.userId) throw new HttpError(403, '只能修改自己的声音');
+      if (v.visibility === 'public') return json({ ok: true, status: v.status });
+      const since = new Date(Date.now() - 3600000).toISOString();
+      const recent = await db()
+        .prepare(
+          "SELECT COUNT(*) n FROM audit WHERE actor_id=? AND action='request_publication' AND created_at>?",
+        )
+        .bind(u.userId, since)
+        .first<{ n: number }>();
+      if ((recent?.n ?? 0) >= 10) throw new HttpError(429, '每小时最多申请公开 10 段声音');
+      const now = new Date().toISOString();
+      await db().batch([
+        db()
+          .prepare(
+            "UPDATE voices SET visibility='public',status='pending',featured=0,review_note='',reviewed_at=NULL,reviewed_by=NULL WHERE id=? AND owner_id=? AND visibility='private'",
+          )
+          .bind(id, u.userId),
+        db()
+          .prepare(
+            "INSERT INTO audit(id,actor_id,voice_id,action,note,created_at) VALUES(?,?,?,'request_publication','',?)",
+          )
+          .bind(crypto.randomUUID(), u.userId, id, now),
+      ]);
+      return json({ ok: true, status: 'pending' });
+    }
     if (!['heart', 'save'].includes(String(body.action)) || typeof body.active !== 'boolean')
       throw new HttpError(400, '无效操作');
     if (v.visibility !== 'public' || v.status !== 'approved')

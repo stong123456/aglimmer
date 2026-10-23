@@ -1,6 +1,6 @@
 'use client';
 import { LocalizedView } from './preferences';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { resumePosition } from '@/lib/podcast';
 import { type Voice, durationLabel, dateLabel } from '@/lib/shared';
 export default function PodcastShelf({
@@ -25,24 +25,72 @@ export default function PodcastShelf({
   const [retry, setRetry] = useState(0);
   const [length, setLength] = useState('all');
   const [progress, setProgress] = useState<Record<string, number>>({});
+  const [cursor, setCursor] = useState<string | null>(null),
+    [moreLoading, setMoreLoading] = useState(false),
+    [moreError, setMoreError] = useState('');
+  const requestId = useRef(0);
   useEffect(() => {
+    const id = ++requestId.current;
     const controller = new AbortController();
     setLoading(true);
     setError('');
-    fetch('/api/voices?topic=podcast&mode=all', { signal: controller.signal })
-      .then(async (r) => {
-        const d = (await r.json()) as { error?: string; voices: Voice[] };
-        if (!r.ok) throw Error(d.error || '暂时无法打开播客');
-        setEpisodes(d.voices);
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') setError(e.message);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, [retry]);
+    setCursor(null);
+    setMoreLoading(false);
+    setMoreError('');
+    const params = new URLSearchParams({ topic: 'podcast', mode: 'all', length });
+    if (query.trim()) params.set('q', query.trim());
+    const timer = setTimeout(
+      () => {
+        void fetch('/api/voices?' + params, { signal: controller.signal })
+          .then(async (r) => {
+            const d = (await r.json()) as {
+              error?: string;
+              voices: Voice[];
+              nextCursor: string | null;
+            };
+            if (!r.ok) throw Error(d.error || '暂时无法打开播客');
+            if (id === requestId.current && !controller.signal.aborted) {
+              setEpisodes(d.voices);
+              setCursor(d.nextCursor);
+            }
+          })
+          .catch((e) => {
+            if (e.name !== 'AbortError') setError(e.message);
+          })
+          .finally(() => {
+            if (!controller.signal.aborted) setLoading(false);
+          });
+      },
+      query.trim() ? 250 : 0,
+    );
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+      requestId.current++;
+    };
+  }, [retry, query, length]);
+  async function more() {
+    if (!cursor || loading || moreLoading) return;
+    const id = requestId.current;
+    setMoreLoading(true);
+    setMoreError('');
+    try {
+      const params = new URLSearchParams({ topic: 'podcast', mode: 'all', length, before: cursor });
+      if (query.trim()) params.set('q', query.trim());
+      const r = await fetch('/api/voices?' + params),
+        d = (await r.json()) as { voices: Voice[]; nextCursor: string | null; error?: string };
+      if (!r.ok) throw Error(d.error || '暂时无法打开播客');
+      if (id !== requestId.current) return;
+      setEpisodes((current) => [
+        ...new Map([...current, ...d.voices].map((v) => [v.id, v])).values(),
+      ]);
+      setCursor(d.nextCursor);
+    } catch (e) {
+      if (id === requestId.current) setMoreError((e as Error).message);
+    } finally {
+      if (id === requestId.current) setMoreLoading(false);
+    }
+  }
   useEffect(() => {
     const update = () => {
       const values: Record<string, number> = {};
@@ -62,7 +110,9 @@ export default function PodcastShelf({
   }, [episodes]);
   const shown = episodes.filter(
     (v) =>
-      `${v.title}${v.signature}${v.transcript}`.includes(query.trim()) &&
+      `${v.title}${v.signature}${v.transcript}`
+        .toLocaleLowerCase()
+        .includes(query.trim().toLocaleLowerCase()) &&
       (length === 'all' || (length === 'short' ? v.duration < 600 : v.duration >= 600)),
   );
   return (
@@ -87,6 +137,7 @@ export default function PodcastShelf({
               找一个故事
               <input
                 type="search"
+                maxLength={100}
                 placeholder="故事名、作者或内容"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -161,10 +212,12 @@ export default function PodcastShelf({
           ) : (
             <div className="empty">
               <h2>
-                {episodes.length ? '这个条件下还没有故事' : '第一本有声音的故事书，等你来写。'}
+                {episodes.length || query.trim() || length !== 'all'
+                  ? '这个条件下还没有故事'
+                  : '第一本有声音的故事书，等你来写。'}
               </h2>
               <p>这里会收录经过审核的长内容。可以分享原创故事，或你有朗读授权的作品。</p>
-              {episodes.length ? (
+              {episodes.length || query.trim() || length !== 'all' ? (
                 <button
                   className="text-button"
                   onClick={() => {
@@ -176,10 +229,18 @@ export default function PodcastShelf({
                 </button>
               ) : null}
               <button className="button outline" onClick={onCreate}>
-                上传第一期播客
+                分享一段长声音
               </button>
             </div>
           )}
+          {!loading && !error && cursor ? (
+            <div className="load-more">
+              <button className="button outline" disabled={moreLoading} onClick={() => void more()}>
+                {moreLoading ? '正在寻找更多故事…' : '再找一些故事'}
+              </button>
+            </div>
+          ) : null}
+          {moreError ? <p role="alert">{moreError}</p> : null}
           <div className="guideline">
             <p>
               适合安静倾听：原创睡前故事、自然观察、温柔的生活随笔。请注明作品来源与朗读授权，避免突然的高音量、惊吓或刺激性内容。睡眠定时依赖浏览器运行，后台冻结时可能延迟。

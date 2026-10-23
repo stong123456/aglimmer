@@ -1,0 +1,1337 @@
+[
+  {
+    "id": "clouds",
+    "theme": "rest",
+    "zh": "行到水穷处，坐看云起时。",
+    "en": "Where the stream ends, I sit and watch the clouds rise.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "终南别业",
+    "workEn": "My Retreat at Zhongnan",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_3_librivox",
+    "context": "走到暂时没有答案的地方，也可以先停一停。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_3_librivox",
+      "file": "300tangpoems_vol_3_123.mp3",
+      "duration": 54.8,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "sail",
+    "theme": "courage",
+    "zh": "长风破浪会有时，直挂云帆济沧海。",
+    "en": "One day I will ride the wind, raise my sail and cross the sea.",
+    "author": "李白",
+    "authorEn": "Li Bai",
+    "work": "行路难·其一",
+    "workEn": "Hard Is the Road, I",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_2_librivox",
+    "context": "把再次出发的可能，先留在心里。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_2_librivox",
+      "file": "300tangpoems_vol_2_082.mp3",
+      "duration": 82.38,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "mountain",
+    "theme": "courage",
+    "zh": "会当凌绝顶，一览众山小。",
+    "en": "I hope to reach the summit and see the mountains below.",
+    "author": "杜甫",
+    "authorEn": "Du Fu",
+    "work": "望岳",
+    "workEn": "Gazing at Mount Tai",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_1_librivox",
+    "context": "抬头看一眼远处，也走好脚下的一步。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_1_librivox",
+      "file": "300tangpoems_vol_1_008.mp3",
+      "duration": 58.41,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "moon-far",
+    "theme": "connection",
+    "zh": "海上生明月，天涯共此时。",
+    "en": "The moon rises over the sea; far apart, we share this moment.",
+    "author": "张九龄",
+    "authorEn": "Zhang Jiuling",
+    "work": "望月怀远",
+    "workEn": "Looking at the Moon, Thinking of Someone Far Away",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_3_librivox",
+    "context": "把想念放在月光里，也许远方的人正在抬头。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_3_librivox",
+      "file": "300tangpoems_vol_3_091.mp3",
+      "duration": 59.92,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "friendship",
+    "theme": "connection",
+    "zh": "海内存知己，天涯若比邻。",
+    "en": "A friend who understands us can make the farthest distance feel near.",
+    "author": "王勃",
+    "authorEn": "Wang Bo",
+    "work": "送杜少府之任蜀州",
+    "workEn": "Farewell to a Friend Leaving for Shu",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_3_librivox",
+    "context": "距离改变了日常，也可以留下牵挂。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_3_librivox",
+      "file": "300tangpoems_vol_3_092.mp3",
+      "duration": 54.16,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "autumn-mountain",
+    "theme": "rest",
+    "zh": "明月松间照，清泉石上流。",
+    "en": "Moonlight falls through pines; a clear stream flows over stones.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "山居秋暝",
+    "workEn": "An Autumn Evening in the Mountains",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_3_librivox",
+    "context": "让松间月色和石上清泉，陪你安静一会儿。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_3_librivox",
+      "file": "300tangpoems_vol_3_116.mp3",
+      "duration": 57.1,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "grass",
+    "theme": "begin",
+    "zh": "野火烧不尽，春风吹又生。",
+    "en": "Wildfire cannot end the grass; the spring breeze brings it back.",
+    "author": "白居易",
+    "authorEn": "Bai Juyi",
+    "work": "赋得古原草送别",
+    "workEn": "Grass on the Ancient Plain",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/300_tang_poems_vol_3_librivox",
+    "context": "生命的恢复有自己的节奏。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "300_tang_poems_vol_3_librivox",
+      "file": "300tangpoems_vol_3_152.mp3",
+      "duration": 54.24,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "deer",
+    "theme": "rest",
+    "zh": "返景入深林，复照青苔上。",
+    "en": "Evening light enters the deep woods and rests upon the moss.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "鹿柴",
+    "workEn": "Deer Park",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "留意日落之前，那一小片光。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_01_various_128kb.mp3",
+      "duration": 40.73,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "bamboo",
+    "theme": "rest",
+    "zh": "深林人不知，明月来相照。",
+    "en": "Unseen in the deep grove, I have the bright moon for company.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "竹里馆",
+    "workEn": "Among the Bamboos",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "独处也可以是一段温柔的时光。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_02_various_128kb.mp3",
+      "duration": 39.92,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "parting",
+    "theme": "connection",
+    "zh": "春草明年绿，王孙归不归？",
+    "en": "The grass will turn green next spring. Will my friend return?",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "送别",
+    "workEn": "A Parting",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "把告别说轻一点，把重逢留给以后。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_03_various_128kb.mp3",
+      "duration": 43.11,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "red-beans",
+    "theme": "connection",
+    "zh": "愿君多采撷，此物最相思。",
+    "en": "Gather a few red beans, a small token of remembering.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "相思",
+    "workEn": "Red Beans",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "有些牵挂，可以寄托在小小的事物里。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_04_various_128kb.mp3",
+      "duration": 38.75,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "plum",
+    "theme": "connection",
+    "zh": "来日绮窗前，寒梅著花未？",
+    "en": "When you left home, had the winter plum by the window bloomed?",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "杂诗",
+    "workEn": "A Question from Home",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "最想问候的，也许只是家门前的一枝花。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_05_various_128kb.mp3",
+      "duration": 41.17,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "snow-peak",
+    "theme": "rest",
+    "zh": "林表明霁色，城中增暮寒。",
+    "en": "Clear light rests above the woods; evening cools the city.",
+    "author": "祖咏",
+    "authorEn": "Zu Yong",
+    "work": "终南望余雪",
+    "workEn": "Snow on Zhongnan",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "给忙碌的眼睛，留一点远山。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_07_various_128kb.mp3",
+      "duration": 42.69,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "river-night",
+    "theme": "rest",
+    "zh": "野旷天低树，江清月近人。",
+    "en": "Across the open fields the sky meets trees; on the clear river the moon feels near.",
+    "author": "孟浩然",
+    "authorEn": "Meng Haoran",
+    "work": "宿建德江",
+    "workEn": "A Night on the Jiande River",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "孤单的时候，也可以看看身边的月亮。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_08_various_128kb.mp3",
+      "duration": 55.22,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "spring-morning",
+    "theme": "begin",
+    "zh": "春眠不觉晓，处处闻啼鸟。",
+    "en": "I wake into spring, with birdsong all around.",
+    "author": "孟浩然",
+    "authorEn": "Meng Haoran",
+    "work": "春晓",
+    "workEn": "A Spring Morning",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "新的早晨，也许先从一声鸟鸣开始。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_09_various_128kb.mp3",
+      "duration": 53.52,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "quiet-night",
+    "theme": "connection",
+    "zh": "举头望明月，低头思故乡。",
+    "en": "I look up at the moon, then lower my head and think of home.",
+    "author": "李白",
+    "authorEn": "Li Bai",
+    "work": "静夜思",
+    "workEn": "Thoughts on a Quiet Night",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "想家不需要理由，允许自己想念。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_10_various_128kb.mp3",
+      "duration": 48.33,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "heron-lodge",
+    "theme": "courage",
+    "zh": "欲穷千里目，更上一层楼。",
+    "en": "To see farther, climb one more floor.",
+    "author": "王之涣",
+    "authorEn": "Wang Zhihuan",
+    "work": "登鹳雀楼",
+    "workEn": "At Heron Lodge",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "再多走一小步，也许会看见新的风景。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_13_various_128kb.mp3",
+      "duration": 49.76,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "lingche",
+    "theme": "rest",
+    "zh": "荷笠带斜阳，青山独归远。",
+    "en": "With a bamboo hat beneath the setting sun, he returns toward distant hills.",
+    "author": "刘长卿",
+    "authorEn": "Liu Changqing",
+    "work": "送灵澈上人",
+    "workEn": "Seeing off Monk Lingche",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "傍晚的归途，也有自己的从容。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_14_various_128kb.mp3",
+      "duration": 30.1,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "river-snow",
+    "theme": "rest",
+    "zh": "孤舟蓑笠翁，独钓寒江雪。",
+    "en": "A lone angler in a small boat, fishing through the river snow.",
+    "author": "柳宗元",
+    "authorEn": "Liu Zongyuan",
+    "work": "江雪",
+    "workEn": "River Snow",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "留一段空白，听一听安静。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_21_various_128kb.mp3",
+      "duration": 47.39,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "friend-liu",
+    "theme": "connection",
+    "zh": "晚来天欲雪，能饮一杯无？",
+    "en": "Snow may fall this evening. Will you sit and share a cup?",
+    "author": "白居易",
+    "authorEn": "Bai Juyi",
+    "work": "问刘十九",
+    "workEn": "An Invitation to Liu",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "不必说太多，真诚的陪伴已经很好。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_23_various_128kb.mp3",
+      "duration": 28.71,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "hermit",
+    "theme": "rest",
+    "zh": "只在此山中，云深不知处。",
+    "en": "Somewhere in these mountains, hidden in deep clouds.",
+    "author": "贾岛",
+    "authorEn": "Jia Dao",
+    "work": "寻隐者不遇",
+    "workEn": "Looking for a Hermit",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "有些答案，暂时不必追得那么紧。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_26_various_128kb.mp3",
+      "duration": 32.63,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "homecoming",
+    "theme": "connection",
+    "zh": "少小离家老大回，乡音无改鬓毛衰。",
+    "en": "I left home young and returned much older; my accent stayed, my hair changed.",
+    "author": "贺知章",
+    "authorEn": "He Zhizhang",
+    "work": "回乡偶书",
+    "workEn": "Returning Home",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "时间会改变模样，也会留下熟悉的声音。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_38_various_128kb.mp3",
+      "duration": 35.06,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "baidi",
+    "theme": "begin",
+    "zh": "两岸猿声啼不住，轻舟已过万重山。",
+    "en": "Calls echo from both banks; the light boat has passed ten thousand hills.",
+    "author": "李白",
+    "authorEn": "Li Bai",
+    "work": "早发白帝城",
+    "workEn": "Leaving Baidi at Dawn",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "回头看时，也许已经走过很远。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_46_various_128kb.mp3",
+      "duration": 33.72,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "west-stream",
+    "theme": "rest",
+    "zh": "春潮带雨晚来急，野渡无人舟自横。",
+    "en": "Spring rain swells the evening tide; at the empty crossing a boat drifts sideways.",
+    "author": "韦应物",
+    "authorEn": "Wei Yingwu",
+    "work": "滁州西涧",
+    "workEn": "The Western Stream at Chuzhou",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "不赶路的时候，听听水流。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_49_various_128kb.mp3",
+      "duration": 34.98,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "weicheng",
+    "theme": "connection",
+    "zh": "劝君更尽一杯酒，西出阳关无故人。",
+    "en": "Stay for one more cup before the road takes you far from old friends.",
+    "author": "王维",
+    "authorEn": "Wang Wei",
+    "work": "送元二使安西",
+    "workEn": "A Farewell at Weicheng",
+    "originalLanguage": "zh",
+    "period": "唐代",
+    "sourceUrl": "https://archive.org/details/three_hundred_tang_poems_volume_5_1501_librivox",
+    "context": "珍惜此刻的相聚，也祝远行的人平安。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "three_hundred_tang_poems_volume_5_1501_librivox",
+      "file": "300tangpoems5_89_various_128kb.mp3",
+      "duration": 35.63,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "hope",
+    "theme": "hope",
+    "zh": "希望像一只带着羽毛的小鸟，轻轻栖在心里。",
+    "en": "Hope is the thing with feathers that perches in the soul.",
+    "author": "艾米莉·狄金森",
+    "authorEn": "Emily Dickinson",
+    "work": "希望",
+    "workEn": "Hope",
+    "originalLanguage": "en",
+    "period": "公版诗作",
+    "sourceUrl": "https://archive.org/details/hope_1311.poem_librivox",
+    "context": "不必把希望说得很响亮，很小的一点也可以。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "hope_1311.poem_librivox",
+      "file": "hope_dickinson_as_128kb.mp3",
+      "duration": 48.69,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "psalm",
+    "theme": "begin",
+    "zh": "学着踏实去做，也学着耐心等待。",
+    "en": "Learn to labor and to wait.",
+    "author": "亨利·沃兹沃思·朗费罗",
+    "authorEn": "Henry Wadsworth Longfellow",
+    "work": "人生礼赞",
+    "workEn": "A Psalm of Life",
+    "originalLanguage": "en",
+    "period": "公版诗作",
+    "sourceUrl": "https://archive.org/details/psalm_of_life_1902.poem_librivox",
+    "context": "行动和等待，可以同时存在。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "psalm_of_life_1902.poem_librivox",
+      "file": "psalmoflife_longfellow_alg_128kb.mp3",
+      "duration": 116.19,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "invictus",
+    "theme": "courage",
+    "zh": "我是自己命运的主人，也是自己灵魂的舵手。",
+    "en": "I am the master of my fate, I am the captain of my soul.",
+    "author": "威廉·欧内斯特·亨利",
+    "authorEn": "William Ernest Henley",
+    "work": "不可征服",
+    "workEn": "Invictus",
+    "originalLanguage": "en",
+    "period": "公版诗作",
+    "sourceUrl": "https://archive.org/details/invictus_2305.poem_librivox",
+    "context": "把能做的那一点，握回自己的手里。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "invictus_2305.poem_librivox",
+      "file": "invictus_henley_alp_128kb.mp3",
+      "duration": 64.03,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://librivox.org/pages/public-domain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "if",
+    "theme": "courage",
+    "zh": "与人群同行，也保留自己的清醒。",
+    "en": "A poem about patience, steadiness and keeping your judgment.",
+    "author": "鲁德亚德·吉卜林",
+    "authorEn": "Rudyard Kipling",
+    "work": "如果",
+    "workEn": "If—",
+    "originalLanguage": "en",
+    "period": "公版诗作",
+    "sourceUrl": "https://archive.org/details/if_1808.poem_librivox",
+    "context": "英文为本站导读；原作全文请听来源录音。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "if_1808.poem_librivox",
+      "file": "if_kipling_adr_128kb.mp3",
+      "duration": 115.77,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "life",
+    "theme": "hope",
+    "zh": "阴雨会来，也会有放晴的时刻。",
+    "en": "A poem that makes room for rain, courage and returning hope.",
+    "author": "夏洛蒂·勃朗特",
+    "authorEn": "Charlotte Brontë",
+    "work": "生活",
+    "workEn": "Life",
+    "originalLanguage": "en",
+    "period": "公版诗作",
+    "sourceUrl": "https://archive.org/details/life_bronte_0903_librivox",
+    "context": "英文为本站导读；低谷之外，也给希望留一个位置。",
+    "kind": "poetry",
+    "media": {
+      "provider": "archive",
+      "collection": "life_bronte_0903_librivox",
+      "file": "life_bronte_af.mp3",
+      "duration": 74.11,
+      "credit": "LibriVox 志愿朗读者 · 具体署名见来源页",
+      "creditEn": "LibriVox volunteer readers · full credits at source"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文字与录音在美国属于公有领域；其他地区保护状态可能不同。本站仅嵌入来源播放器，保留原始署名，不存储、剪辑或重新发布音轨。",
+      "basisEn": "LibriVox declares its texts and recordings public domain in the USA; protection may differ elsewhere. This entry embeds the source player and preserves attribution without storing, editing or reuploading audio."
+    }
+  },
+  {
+    "id": "jobs",
+    "theme": "begin",
+    "zh": "关于选择、失去与重新出发。",
+    "en": "A commencement address about choices, loss and beginning again.",
+    "author": "史蒂夫·乔布斯",
+    "authorEn": "Steve Jobs",
+    "work": "斯坦福毕业演讲",
+    "workEn": "Stanford Commencement Address",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=UF8uR6Z6KLc",
+    "context": "想一想：有哪些选择，让今天的你更接近自己？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "UF8uR6Z6KLc",
+      "credit": "Stanford",
+      "creditEn": "Stanford",
+      "verifiedTitle": "Steve Jobs' 2005 Stanford Commencement Address"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "creativity",
+    "theme": "begin",
+    "zh": "为不同的天赋，留出更多空间。",
+    "en": "An invitation to rethink education and make room for different talents.",
+    "author": "肯·罗宾逊",
+    "authorEn": "Sir Ken Robinson",
+    "work": "学校会扼杀创造力吗？",
+    "workEn": "Do Schools Kill Creativity?",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=iG9CE55wbtY",
+    "context": "你曾经喜欢、后来放下的兴趣是什么？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "iG9CE55wbtY",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "Do schools kill creativity? | Sir Ken Robinson | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "vulnerability",
+    "theme": "connection",
+    "zh": "真实的连接，也需要允许自己不完美。",
+    "en": "A talk about vulnerability, belonging and human connection.",
+    "author": "布琳·布朗",
+    "authorEn": "Brené Brown",
+    "work": "脆弱的力量",
+    "workEn": "The Power of Vulnerability",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=iCvmsMzlF7o",
+    "context": "你在谁面前，可以放下必须完美的压力？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "iCvmsMzlF7o",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "The Power of Vulnerability | Brené Brown | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "grit",
+    "theme": "courage",
+    "zh": "探索长期投入与坚持的意义。",
+    "en": "A look at passion, perseverance and long-term effort.",
+    "author": "安杰拉·达克沃思",
+    "authorEn": "Angela Duckworth",
+    "work": "坚毅的力量",
+    "workEn": "Grit: The Power of Passion and Perseverance",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=H14bBuluwB8",
+    "context": "有什么事，你愿意用自己的节奏坚持下去？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "H14bBuluwB8",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "Grit: The Power of Passion and Perseverance | Angela Lee Duckworth | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "happiness",
+    "theme": "hope",
+    "zh": "看看积极体验如何影响日常工作。",
+    "en": "A talk about positive experience and everyday work.",
+    "author": "肖恩·埃科尔",
+    "authorEn": "Shawn Achor",
+    "work": "快乐工作的秘密",
+    "workEn": "The Happy Secret to Better Work",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=fLJsdqxnZb0",
+    "context": "今天有哪些很小、但值得记下的好事？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "fLJsdqxnZb0",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "The happy secret to better work | Shawn Achor"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "introverts",
+    "theme": "rest",
+    "zh": "安静，也有属于自己的力量。",
+    "en": "A talk about the value of quieter ways of thinking and being.",
+    "author": "苏珊·凯恩",
+    "authorEn": "Susan Cain",
+    "work": "内向者的力量",
+    "workEn": "The Power of Introverts",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=c0KYU2j0TM4",
+    "context": "你在什么环境里，最能听见自己的想法？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "c0KYU2j0TM4",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "The power of introverts | Susan Cain | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "growth",
+    "theme": "begin",
+    "zh": "把暂时不会，理解为仍在学习。",
+    "en": "An introduction to growth and the possibility of learning.",
+    "author": "卡罗尔·德韦克",
+    "authorEn": "Carol Dweck",
+    "work": "相信自己能够进步",
+    "workEn": "The Power of Believing That You Can Improve",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=_X0mgOOSpLU",
+    "context": "最近有什么事，你还在慢慢练习？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "_X0mgOOSpLU",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "The power of believing that you can improve | Carol Dweck | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "procrastination",
+    "theme": "begin",
+    "zh": "带着幽默，观察我们为何迟迟没有开始。",
+    "en": "A humorous exploration of procrastination and getting started.",
+    "author": "蒂姆·厄本",
+    "authorEn": "Tim Urban",
+    "work": "拖延者的大脑里发生了什么？",
+    "workEn": "Inside the Mind of a Master Procrastinator",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=arj7oStGLkU",
+    "context": "如果只做五分钟，你今天会先开始什么？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "arj7oStGLkU",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "Inside the Mind of a Master Procrastinator | Tim Urban | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "movement",
+    "theme": "courage",
+    "zh": "小小的响应，也能成为改变的起点。",
+    "en": "A short talk about participation and starting a movement.",
+    "author": "德里克·西弗斯",
+    "authorEn": "Derek Sivers",
+    "work": "怎样发起一场行动",
+    "workEn": "How to Start a Movement",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=V74AxCqOTvg",
+    "context": "你曾经收到过怎样的一次支持？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "V74AxCqOTvg",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "How to start a movement | Derek Sivers"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "good-life",
+    "theme": "connection",
+    "zh": "从长期研究出发，重新看待人与人的关系。",
+    "en": "Lessons about relationships from a long-running study of adult life.",
+    "author": "罗伯特·瓦尔丁格",
+    "authorEn": "Robert Waldinger",
+    "work": "什么造就美好生活？",
+    "workEn": "What Makes a Good Life?",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=8KkKuTCFvzI",
+    "context": "今天，你想认真联系谁？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "8KkKuTCFvzI",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "What Makes a Good Life? Lessons from the Longest Study on Happiness | Robert Waldinger | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "genius",
+    "theme": "begin",
+    "zh": "与创作的压力相处，继续表达。",
+    "en": "A talk about creativity and the pressure that can come with it.",
+    "author": "伊丽莎白·吉尔伯特",
+    "authorEn": "Elizabeth Gilbert",
+    "work": "难以捉摸的创作天才",
+    "workEn": "Your Elusive Creative Genius",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=86x-u-tz0MA",
+    "context": "如果暂时不评价结果，你最想创作什么？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "86x-u-tz0MA",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "Your elusive creative genius | Elizabeth Gilbert"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "why",
+    "theme": "courage",
+    "zh": "重新追问：是什么让你愿意行动？",
+    "en": "A talk about purpose and inspiring action.",
+    "author": "西蒙·斯涅克",
+    "authorEn": "Simon Sinek",
+    "work": "伟大的领导者如何激励行动",
+    "workEn": "How Great Leaders Inspire Action",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=qp0HIF3SfI4",
+    "context": "你想投入的事情，背后的原因是什么？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "qp0HIF3SfI4",
+      "credit": "TED",
+      "creditEn": "TED",
+      "verifiedTitle": "How Great Leaders Inspire Action | Simon Sinek | TED"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "rowling",
+    "theme": "begin",
+    "zh": "关于挫折、想象力与理解他人。",
+    "en": "A commencement address about failure, imagination and understanding others.",
+    "author": "J. K. 罗琳",
+    "authorEn": "J. K. Rowling",
+    "work": "哈佛毕业演讲",
+    "workEn": "Harvard Commencement Address",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=wHGqp8lz36c",
+    "context": "一次不顺利的经历，让你重新看见了什么？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "wHGqp8lz36c",
+      "credit": "Harvard Magazine",
+      "creditEn": "Harvard Magazine",
+      "verifiedTitle": "J.K. Rowling Speaks at Harvard Commencement"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "carrey",
+    "theme": "hope",
+    "zh": "关于选择、恐惧和对生活的期待。",
+    "en": "A commencement address reflecting on choices, fear and possibility.",
+    "author": "金·凯瑞",
+    "authorEn": "Jim Carrey",
+    "work": "2014 年毕业演讲",
+    "workEn": "2014 Commencement Address",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=V80-gPkpH6M",
+    "context": "今天，你想为自己保留怎样的可能？",
+    "kind": "speech",
+    "media": {
+      "provider": "youtube",
+      "videoId": "V80-gPkpH6M",
+      "credit": "Maharishi International University",
+      "creditEn": "Maharishi International University",
+      "verifiedTitle": "Jim Carrey at MIU: Commencement Address at the 2014 Graduation  (EN, FR, ES, RU, GR,...)"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  },
+  {
+    "id": "chaplin",
+    "theme": "hope",
+    "zh": "一段关于善意与人类共同处境的经典电影独白。",
+    "en": "A classic film monologue reflecting on kindness and our shared humanity.",
+    "author": "查理·卓别林",
+    "authorEn": "Charlie Chaplin",
+    "work": "大独裁者：结尾演讲片段",
+    "workEn": "The Great Dictator: Final Speech",
+    "originalLanguage": "en",
+    "period": "官方发布",
+    "sourceUrl": "https://www.youtube.com/watch?v=YCEllKyaCrc",
+    "context": "你希望怎样的善意，在人与人之间传递？",
+    "kind": "film",
+    "media": {
+      "provider": "youtube",
+      "videoId": "YCEllKyaCrc",
+      "credit": "Charlie Chaplin",
+      "creditEn": "Charlie Chaplin",
+      "verifiedTitle": "Charlie Chaplin - Final Speech from The Great Dictator (Clip)"
+    },
+    "rights": {
+      "status": "official-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://www.youtube.com/static?template=terms",
+      "basis": "原作及音视频版权归权利人。仅通过官方发布频道的 YouTube 播放器展示，未下载、剪辑或转存音轨。中英文为本站导读，不是台词逐字翻译。来源方可能更改嵌入权限；无法播放时请访问原站。",
+      "basisEn": "Copyright remains with the rights holders. Only the official channel’s YouTube player is embedded; audio is not downloaded, edited or rehosted. Bilingual text is our editorial introduction, not a transcript. The source may change embedding permissions; use the original link if playback is unavailable."
+    }
+  }
+]

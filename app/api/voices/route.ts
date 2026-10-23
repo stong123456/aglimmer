@@ -16,13 +16,29 @@ import {
   toVoice,
 } from '@/lib/server';
 import { DEMOS, MOODS } from '@/lib/shared';
+import {
+  CHANNEL_PAGE_SIZE,
+  encodeChannelCursor,
+  olderChannelRows,
+  parseChannelCursor,
+} from '@/lib/channel-history';
 export async function GET(req: Request) {
   try {
     const u = await identity();
     const url = new URL(req.url);
     const mood = url.searchParams.get('mood');
     const mode = url.searchParams.get('mode') ?? 'featured';
+    if (!['featured', 'all'].includes(mode)) throw new HttpError(400, '无效的声音筛选');
+    const query = (url.searchParams.get('q') ?? '').trim();
+    if (query.length > 100) throw new HttpError(400, '搜索关键词不能超过 100 字');
+    const before = url.searchParams.get('before');
+    const cursor = before === null ? null : parseChannelCursor(before);
+    if (before !== null && (!cursor || cursor.source !== 'v'))
+      throw new HttpError(400, '消息位置无效，请刷新频道后重试。');
+    const pagePosition = olderChannelRows(cursor, 'v', 'v.');
     const topic = url.searchParams.get('topic');
+    const length = url.searchParams.get('length') ?? 'all';
+    if (!['all', 'short', 'long'].includes(length)) throw new HttpError(400, '无效的声音筛选');
     if (topic && topic !== 'podcast' && !getTopic(topic))
       throw new HttpError(400, '没有找到这个主题');
     const where = ["v.visibility='public'", "v.status='approved'"];
@@ -37,9 +53,20 @@ export async function GET(req: Request) {
       where.push('v.mood=?');
       args.push(mood);
     }
+    if (query) {
+      where.push(
+        "(v.title LIKE ? ESCAPE '\\' OR v.signature LIKE ? ESCAPE '\\' OR v.transcript LIKE ? ESCAPE '\\')",
+      );
+      const search = '%' + query.replace(/[\\%_]/g, '\\$&') + '%';
+      args.push(search, search, search);
+    }
+    if (topic === 'podcast' && length !== 'all')
+      where.push(length === 'short' ? 'v.duration<600' : 'v.duration>=600');
     const rows = await db()
-      .prepare(`${SELECT} WHERE ${where.join(' AND ')} ORDER BY v.created_at DESC LIMIT 60`)
-      .bind(...args)
+      .prepare(
+        `${SELECT} WHERE ${where.join(' AND ')}${pagePosition.sql} ORDER BY v.created_at DESC,v.id DESC LIMIT ${CHANNEL_PAGE_SIZE + 1}`,
+      )
+      .bind(...args, ...pagePosition.values)
       .all();
     const reacts = u
       ? await db()
@@ -47,7 +74,7 @@ export async function GET(req: Request) {
           .bind(u.userId)
           .all<{ voice_id: string; kind: string }>()
       : { results: [] };
-    const values = rows.results.map((r) =>
+    const values = rows.results.slice(0, CHANNEL_PAGE_SIZE).map((r) =>
       toVoice(
         r,
         reacts.results.some((a) => a.voice_id === r.id && a.kind === 'save'),
@@ -55,10 +82,25 @@ export async function GET(req: Request) {
       ),
     );
     const demos =
-      values.length || topic
+      values.length || topic || before !== null
         ? []
-        : DEMOS.filter((v) => (mode !== 'featured' || v.featured) && (!mood || v.mood === mood));
-    return json({ voices: [...values, ...demos], demo: !values.length });
+        : DEMOS.filter(
+            (v) =>
+              (mode !== 'featured' || v.featured) &&
+              (!mood || v.mood === mood) &&
+              (!query ||
+                `${v.title}${v.signature}${v.transcript}`
+                  .toLocaleLowerCase()
+                  .includes(query.toLocaleLowerCase())),
+          );
+    return json({
+      voices: [...values, ...demos],
+      demo: demos.length > 0,
+      nextCursor:
+        rows.results.length > CHANNEL_PAGE_SIZE
+          ? encodeChannelCursor({ ...values.at(-1)!, kind: 'voice' })
+          : null,
+    });
   } catch (e) {
     return fail(e);
   }

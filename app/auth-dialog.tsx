@@ -85,10 +85,16 @@ export default function AuthDialog({
     dialog.current?.querySelector<HTMLInputElement>('input')?.focus();
   }, [step]);
   useEffect(() => {
-    api('/api/auth/status')
-      .then(setConfig)
-      .catch(() => setError('暂时无法连接登录服务，请稍后再试。'));
+    void loadConfig();
   }, []);
+  async function loadConfig() {
+    setError('');
+    try {
+      setConfig(await api('/api/auth/status'));
+    } catch {
+      setError('暂时无法连接登录服务，请稍后再试。');
+    }
+  }
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setInterval(() => setCooldown((n) => Math.max(0, n - 1)), 1000);
@@ -136,11 +142,14 @@ export default function AuthDialog({
     setCaptcha('');
   }
   async function send() {
+    if (busyRef.current) return;
+    if (!config?.ready || (config.captchaSiteKey && !captcha)) return;
     const normalized = normalizeEmail(email);
     if (!normalized) {
       setError('请填写有效的邮箱地址。');
       return;
     }
+    busyRef.current = true;
     setBusy(true);
     setError('');
     try {
@@ -153,15 +162,18 @@ export default function AuthDialog({
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      busyRef.current = false;
       setBusy(false);
       resetCaptcha();
     }
   }
   async function verify() {
+    if (busyRef.current) return;
     if (!validOtp(code)) {
       setError('请填写邮件中的完整数字验证码。');
       return;
     }
+    busyRef.current = true;
     setBusy(true);
     setError('');
     try {
@@ -173,14 +185,17 @@ export default function AuthDialog({
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
-  async function finish() {
+  async function finish(skipNickname = false) {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     setError('');
     try {
-      if (nickname.trim()) {
+      if (!skipNickname && nickname.trim()) {
         const r = await fetch('/api/me', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -193,10 +208,13 @@ export default function AuthDialog({
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
   async function local() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     setError('');
     try {
@@ -205,6 +223,7 @@ export default function AuthDialog({
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
@@ -286,7 +305,7 @@ export default function AuthDialog({
                 </button>
                 <p className="auth-consent">
                   继续即表示同意{' '}
-                  <button type="button" className="inline-link" onClick={onRules}>
+                  <button type="button" className="inline-link" disabled={busy} onClick={onRules}>
                     社区与保存约定
                   </button>
                   。你的邮箱不会公开。
@@ -324,7 +343,7 @@ export default function AuthDialog({
                   <button
                     type="button"
                     className="text-button"
-                    disabled={busy || cooldown > 0}
+                    disabled={busy || cooldown > 0 || (!!config?.captchaSiteKey && !captcha)}
                     onClick={send}
                   >
                     {cooldown > 0 ? `${cooldown} 秒后可重发` : '重新发送验证码'}
@@ -372,7 +391,7 @@ export default function AuthDialog({
                   type="button"
                   disabled={busy}
                   onClick={() => {
-                    void onComplete();
+                    void finish(true);
                   }}
                 >
                   先用默认署名，之后再改
@@ -383,6 +402,11 @@ export default function AuthDialog({
               <p className="auth-error" role="alert">
                 {error}
               </p>
+            ) : null}
+            {error && !config ? (
+              <button className="text-button" disabled={busy} onClick={() => void loadConfig()}>
+                重新连接登录服务
+              </button>
             ) : null}
             {config && !config.ready && step === 'email' ? (
               <div className="auth-setup-note">
