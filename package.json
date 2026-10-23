@@ -13,13 +13,15 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts tests/podcast.test.ts tests/ui-safety.test.ts",
+    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts tests/podcast.test.ts tests/ui-safety.test.ts tests/admin-query.test.ts tests/backup-vault.test.mjs",
     "test:api": "node tests/api-smoke.mjs",
     "test:channels": "node tests/channels-smoke.mjs",
     "test:auth": "node tests/auth-smoke.mjs",
     "test:production": "node tests/auth-production.mjs",
     "test:podcasts": "node tests/podcast-smoke.mjs",
-    "test:avatar": "node tests/avatar-smoke.mjs"
+    "test:avatar": "node tests/avatar-smoke.mjs",
+    "test:operations": "node tests/operations-production.mjs",
+    "check:live": "node scripts/check-live.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

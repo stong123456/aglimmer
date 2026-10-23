@@ -25,6 +25,8 @@ import { usePreferences, PreferencesMenu, themeImages } from './preferences';
 import VoicePostcard from './voice-postcard';
 import { canMakePostcard } from '@/lib/postcard';
 import AvatarSettings from './avatar-settings';
+import AccountClosure from './account-closure';
+import AdminOperations from './admin-operations';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
 import { podcastChapters, resumePosition } from '@/lib/podcast';
@@ -191,6 +193,15 @@ export default function VoiceApp() {
     [position, setPosition] = useState(0),
     [audioDuration, setAudioDuration] = useState(0),
     [rate, setRate] = useState(1);
+  const [adminStatus, setAdminStatus] = useState('all');
+  const [adminPages, setAdminPages] = useState({ voices: 0, messages: 0, reports: 0 });
+  const [adminPagination, setAdminPagination] = useState<
+    Record<string, { page: number; total: number; limit: number; hasNext: boolean }>
+  >({});
+  const [adminPending, setAdminPending] = useState({ voices: 0, messages: 0 });
+  const [adminLoading, setAdminLoading] = useState(false),
+    [adminError, setAdminError] = useState('');
+  const adminRequestRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
     if (!('mediaSession' in navigator) || !playing || !playing.audioUrl) return;
@@ -356,14 +367,77 @@ export default function VoiceApp() {
     }
   }
   async function loadAdmin() {
+    const requestId = ++adminRequestRef.current;
+    setAdminLoading(true);
+    setAdminError('');
     try {
-      const data = await api('/api/admin');
+      const params = new URLSearchParams({
+        status: adminStatus,
+        voicePage: String(adminPages.voices),
+        messagePage: String(adminPages.messages),
+        reportPage: String(adminPages.reports),
+      });
+      const data = await api('/api/admin?' + params);
+      if (requestId !== adminRequestRef.current) return;
       setAdminVoices(data.voices);
       setReports(data.reports);
       setAdminMessages(data.messages ?? []);
+      setAdminPagination(data.pagination ?? {});
+      setAdminPending(data.pending ?? { voices: 0, messages: 0 });
+      setAdminPages((previous) => {
+        const next = { ...previous };
+        for (const key of ['voices', 'messages', 'reports'] as const) {
+          const page = data.pagination?.[key];
+          if (page)
+            next[key] = Math.min(
+              previous[key],
+              Math.max(0, Math.ceil(page.total / page.limit) - 1),
+            );
+        }
+        return Object.keys(next).some(
+          (key) => next[key as keyof typeof next] !== previous[key as keyof typeof previous],
+        )
+          ? next
+          : previous;
+      });
     } catch (e) {
-      notify((e as Error).message);
+      if (requestId === adminRequestRef.current) setAdminError((e as Error).message);
+    } finally {
+      if (requestId === adminRequestRef.current) setAdminLoading(false);
     }
+  }
+  function adminPager(kind: 'voices' | 'messages' | 'reports') {
+    const p = adminPagination[kind];
+    if (!p) return null;
+    return (
+      <div
+        className="admin-pagination"
+        role="group"
+        aria-label={t(
+          kind === 'voices' ? '声音审核分页' : kind === 'messages' ? '频道审核分页' : '举报分页',
+        )}
+      >
+        <button
+          className="button outline small"
+          disabled={busy || adminLoading || p.page === 0}
+          onClick={() => setAdminPages((v) => ({ ...v, [kind]: v[kind] - 1 }))}
+        >
+          上一页
+        </button>
+        <span>
+          {locale === 'en'
+            ? `Page ${p.page + 1} of ${Math.max(1, Math.ceil(p.total / p.limit))} · ${p.total} total`
+            : `第 ${p.page + 1} / ${Math.max(1, Math.ceil(p.total / p.limit))} 页 · 共 ${p.total} 项`}
+        </span>
+        <button
+          className="button outline small"
+          disabled={busy || adminLoading || !p.hasNext}
+          onClick={() => setAdminPages((v) => ({ ...v, [kind]: v[kind] + 1 }))}
+        >
+          下一页
+        </button>
+      </div>
+    );
   }
   useEffect(() => {
     void loadMe();
@@ -395,7 +469,7 @@ export default function VoiceApp() {
   useEffect(() => {
     if (view === 'archive') void loadMe();
     if (view === 'admin' && user?.admin) void loadAdmin();
-  }, [view, user?.admin]);
+  }, [view, user?.admin, adminStatus, adminPages.voices, adminPages.messages, adminPages.reports]);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(''), 5000);
@@ -1887,6 +1961,7 @@ export default function VoiceApp() {
                           保存署名
                         </button>
                       </div>
+                      <AccountClosure userId={user.userId} administrator={user.admin} />
                     </details>
                     <VoiceRings
                       voices={own}
@@ -1990,9 +2065,35 @@ export default function VoiceApp() {
                         精选标准：真诚具体、尊重情绪、听感清楚、不营销、不攻击、不作不切实际的承诺。公开不代表精选，首页推荐需要单独决定。
                       </p>
                     </div>
-                    <h2 className="admin-heading">
-                      声音审核 · {adminVoices.filter((v) => v.status === 'pending').length} 段待处理
-                    </h2>
+                    <h2 className="admin-heading">声音审核 · {adminPending.voices} 段待处理</h2>
+                    <div className="admin-filter">
+                      <label>
+                        审核状态
+                        <select
+                          aria-label="审核状态"
+                          value={adminStatus}
+                          disabled={busy}
+                          onChange={(e) => {
+                            setAdminStatus(e.target.value);
+                            setAdminPages({ voices: 0, messages: 0, reports: 0 });
+                          }}
+                        >
+                          <option value="all">全部状态</option>
+                          <option value="pending">待审核</option>
+                          <option value="approved">已通过</option>
+                          <option value="rejected">已退回</option>
+                        </select>
+                      </label>
+                      <button
+                        className="button outline small"
+                        disabled={adminLoading || busy}
+                        onClick={() => void loadAdmin()}
+                      >
+                        刷新审核队列
+                      </button>
+                    </div>
+                    {adminLoading ? <p role="status">正在读取审核队列…</p> : null}
+                    {adminError ? <p role="alert">{adminError}</p> : null}
                     {adminVoices.length ? (
                       adminVoices.map((v) => (
                         <div className="admin-row" key={v.id}>
@@ -2046,9 +2147,9 @@ export default function VoiceApp() {
                     ) : (
                       <div className="empty">暂时没有投稿，等待第一点光。</div>
                     )}
+                    {adminPager('voices')}
                     <h2 className="admin-heading">
-                      频道文字与图片 · {adminMessages.filter((m) => m.status === 'pending').length}{' '}
-                      条待处理
+                      频道文字与图片 · {adminPending.messages} 条待处理
                     </h2>
                     {adminMessages.length ? (
                       adminMessages.map((m) => (
@@ -2103,13 +2204,18 @@ export default function VoiceApp() {
                     ) : (
                       <p className="small-note">暂时没有频道消息。</p>
                     )}
+                    {adminPager('messages')}
                     <h2 className="admin-heading">收到的举报</h2>
                     {reports.length ? (
                       reports.map((r) => (
                         <div className="report-row" key={r.id}>
                           <div>
-                            <strong>{r.title ?? '声音已删除'}</strong>
-                            <p>{r.reason}</p>
+                            <strong>
+                              <span data-original={!!r.title}>{r.title ?? '声音已删除'}</span>
+                            </strong>
+                            <p>
+                              <span data-original>{r.reason}</span>
+                            </p>
                           </div>
                           <button
                             className="button outline small"
@@ -2122,6 +2228,8 @@ export default function VoiceApp() {
                     ) : (
                       <p className="small-note">目前没有未处理的举报。</p>
                     )}
+                    {adminPager('reports')}
+                    <AdminOperations currentUserId={user.userId} />
                   </>
                 )}
               </section>

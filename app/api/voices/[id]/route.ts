@@ -52,6 +52,8 @@ export async function PATCH(req: Request, c: Context) {
       .first<{ visibility: string; status: string; owner_id: string }>();
     if (!v) throw new HttpError(404, '声音不存在');
     if (body.action === 'report') {
+      if (v.visibility !== 'public' || v.status !== 'approved')
+        throw new HttpError(403, '只能举报已公开的声音');
       const reason = String(body.reason ?? '').trim();
       if (!reason || reason.length > 300) throw new HttpError(400, '请填写 1–300 字举报原因');
       const recent = await db()

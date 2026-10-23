@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     if (error || !data.session || !data.user)
       throw new HttpError(400, '验证码无效或已过期，请检查后重试。');
     const user = await mapVerifiedUser(data.user);
-    if (!user) throw new HttpError(401, '邮箱尚未验证。');
+    if (!user) throw new HttpError(401, '此账户不可用，请联系运营者。');
     return json({
       ok: true,
       isNew: user.isNew,

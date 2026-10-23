@@ -5,3 +5,6 @@ SUPABASE_PUBLISHABLE_KEY=""
 TURNSTILE_SITE_KEY=""
 # Product user IDs from /api/me, never email addresses.
 ADMIN_USER_IDS=""
+# Set only after actual delivery/recovery tests. These attestations do not run tests.
+EMAIL_DELIVERY_VERIFIED="false"
+BACKUP_RESTORE_VERIFIED_AT=""

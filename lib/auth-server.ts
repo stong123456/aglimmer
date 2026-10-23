@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { validSupabaseConfig } from './auth-core';
 import { createAuthClient } from './supabase-client';
+import { identityHash } from './identity-hash';
 export function authConfig() {
   const url = env.SUPABASE_URL?.trim() ?? '',
     key = (env.SUPABASE_PUBLISHABLE_KEY ?? env.SUPABASE_ANON_KEY)?.trim() ?? '';
@@ -45,6 +46,9 @@ export async function mapVerifiedUser(user: {
   if (!user.id || !user.email || !user.email_confirmed_at) return null;
   if (!env.DB) throw new Error('Database unavailable');
   const subject = 'supabase:' + user.id;
+  const closed = await env.DB.prepare('SELECT subject_hash FROM closed_identities WHERE subject_hash=?')
+    .bind(await identityHash(subject)).first();
+  if (closed) return null;
   const result = await env.DB.prepare(
     'INSERT OR IGNORE INTO auth_identities(subject,user_id,created_at) VALUES(?,?,?)',
   )

@@ -11,7 +11,9 @@
 - 精选声音墙、心情筛选、关键词搜索、随机收听、单实例播放器、进度与倍速。
 - 七个公共主题频道：吹水、INFP、方言、晚安、重新开始、普通日子、未来重逢；支持文字、图片与直接录制/上传语音。
 - 六类灵感卡、浏览器录音、90 秒自动停止、上传音频、试听与本地草稿恢复。
-- 账户与署名设置；录制日期、服务器保存时间和当次署名分别保存。
+- 账户与署名设置、可复制的账户编号；录制日期、服务器保存时间和当次署名分别保存。
+- 可撤回的注销申请，管理员确认删除 Supabase 身份后处理站内数据；中断清理可重试，关闭身份无法重新生成旧档案。
+- 审核工作台按状态筛选，声音、频道消息与举报分别分页，显示完整待办数量；另有私有运行检查面板。
 - 账户头像上传、更换与移除，自动居中裁切至 512 像素；目前仅在本人账户界面显示。
 - 暖纸质、深蓝夜间、桃粉杂志三套可切换主题（不含亮蓝）；中英文界面，投稿原文与历史署名保持不变。
 - 公开且审核通过的声音可制作带署名、日期与收听二维码的 PNG 明信片。
@@ -43,6 +45,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_dear_stick.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0003_bent_meggan.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0004_overconfident_talon.sql
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0005_glamorous_slapstick.sql
 npm run dev -- --hostname 127.0.0.1 --port 5173
 ```
 
@@ -58,13 +61,15 @@ npm run test:channels # 本地频道文字、图片、语音及审核检查
 npm run test:api # 本地 dev 服务运行时执行；只允许 localhost / 127.0.0.1
 npm run build
 npm run test:production # 构建完成后，隔离 Worker + 模拟身份供应商，不发真实邮件
+npm run test:operations # 分页权限、申请/撤回、数据清理、关闭身份防复活
+npm run check:live # 只读检查正式首页和存储服务
 ```
 
 API 测试创建自己可清理的本地测试数据，并恢复署名。禁止针对生产运行。浏览器生成的 WebM 合成音夹具在 `tests/fixtures/`，不包含真实用户声音。
 
 ## 部署与 GitHub
 
-源码已同步到 [GitHub](https://github.com/stong123456/aglimmer)。公开测试版已获得授权，但 Sites 源码工作流的凭据输入被执行权限策略拒绝，尚未上线。
+正式网址：[AGlimmer.xyz](https://aglimmer.xyz/)，已发布公开测试版，域名与 HTTPS 均已生效。源码同步到 [GitHub](https://github.com/stong123456/aglimmer)。真实邮箱送达、线上管理员、自动异地备份仍需运营配置与验收。
 
 `.openai/hosting.json` 已保留本次创建的未发布 Sites 身份和 DB/BUCKET 声明；之后继续此项目应复用该 ID，不应重复创建。Sites 部署会配置 D1/R2 并应用迁移。源码可推送到 GitHub，但 GitHub Pages 无法运行本项目的服务端功能；普通 Vercel 部署也不能直接替代 D1/R2 和 Sites 身份网关。
 
@@ -100,3 +105,6 @@ API 测试创建自己可清理的本地测试数据，并恢复署名。禁止�
 - 待办与能力边界见 docs/PRODUCT_ROADMAP.md。
 
 播客可在文字稿中用独立行标记章节，如 `[00:00] 故事开场`、`[02:15] 一盏小灯`。详情页显示章节导航；播客文字稿最多 15,000 字。书架支持时长筛选与重试，播放器支持前后 15 秒跳转、0.75 倍速和可用浏览器的系统媒体控制。
+
+### 备份加密与恢复
+个人 ZIP 档案或由运营者导出的快照文件可用 `scripts/archive-vault.mjs` 加密、校验和还原。口令通过隐藏输入或 stdin 提供，使用 AES-256-GCM 与 scrypt，不覆写已有文件。操作见 [运营与备份](docs/OPERATIONS.md)。这是离线工具；全站定时异地备份和自动告警仍需另行配置。

@@ -108,3 +108,14 @@ export const authThrottle = sqliteTable(
   },
   (t) => [index('auth_throttle_expiry').on(t.expiresAt)],
 );
+export const accountClosures = sqliteTable('account_closures', {
+  userId: text('user_id').primaryKey(),
+  status: text('status').notNull(),
+  requestedAt: text('requested_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+  objectKeys: text('object_keys').notNull().default('[]'),
+});
+export const closedIdentities = sqliteTable('closed_identities', {
+  subjectHash: text('subject_hash').primaryKey(),
+  closedAt: text('closed_at').notNull(),
+});
