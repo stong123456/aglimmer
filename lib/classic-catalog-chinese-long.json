@@ -1,0 +1,142 @@
+[
+  {
+    "id": "lv-zh-small-incident",
+    "theme": "connection",
+    "zh": "在一件小事里重新认识善意，也重新衡量自己。鲁迅短篇小说原文朗读，保留完整原录音。",
+    "en": "A small encounter opens a larger reflection on kindness and on the narrator himself. A complete source recording of Lu Xun’s short story.",
+    "originalLanguage": "zh",
+    "author": "鲁迅",
+    "authorEn": "Lu Xun",
+    "work": "一件小事",
+    "workEn": "A Small Incident",
+    "period": "1920",
+    "sourceUrl": "https://archive.org/details/call_to_arms_jl_librivox",
+    "context": "在一件小事里重新认识善意，也重新衡量自己。鲁迅短篇小说原文朗读，保留完整原录音。",
+    "kind": "story",
+    "series": "呐喊 · 短篇选读",
+    "seriesEn": "Call to Arms · Selected Stories",
+    "chapter": 6,
+    "sleepSuitable": false,
+    "media": {
+      "provider": "archive",
+      "collection": "call_to_arms_jl_librivox",
+      "file": "calltoarms_06_lu.mp3",
+      "duration": 262.94,
+      "credit": "LibriVox · Jing Li · 普通话",
+      "creditEn": "LibriVox · Jing Li · Mandarin",
+      "verifiedTitle": "06 - 一件小事"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区可能不同。本站按来源原文件直连播放，保留署名与原站入口，不下载转存、剪辑或重新上传音轨。中英文导读为本站原创，并非现代译文朗读。",
+      "basisEn": "LibriVox declares these texts and donated volunteer recordings public domain in the USA; protection may differ elsewhere. Audio streams from the original source file with attribution and source links, without editing or rehosting it. Bilingual introductions are original editorial notes, not a recorded modern translation."
+    }
+  },
+  {
+    "id": "lv-zh-village-opera",
+    "theme": "connection",
+    "zh": "随童年的小船去看一场戏，听乡野、朋友与记忆里的温暖。这是完整短篇选读，不是《呐喊》全书。",
+    "en": "Follow a childhood boat journey to a village performance, through friendship, fields and remembered warmth. A complete selected story, rather than the whole anthology.",
+    "originalLanguage": "zh",
+    "author": "鲁迅",
+    "authorEn": "Lu Xun",
+    "work": "社戏",
+    "workEn": "Village Opera",
+    "period": "1922",
+    "sourceUrl": "https://archive.org/details/call_to_arms_jl_librivox",
+    "context": "随童年的小船去看一场戏，听乡野、朋友与记忆里的温暖。这是完整短篇选读，不是《呐喊》全书。",
+    "kind": "story",
+    "series": "呐喊 · 短篇选读",
+    "seriesEn": "Call to Arms · Selected Stories",
+    "chapter": 16,
+    "sleepSuitable": false,
+    "media": {
+      "provider": "archive",
+      "collection": "call_to_arms_jl_librivox",
+      "file": "calltoarms_16_lu.mp3",
+      "duration": 1340.96,
+      "credit": "LibriVox · Jing Li · 普通话",
+      "creditEn": "LibriVox · Jing Li · Mandarin",
+      "verifiedTitle": "16 - 社戏"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区可能不同。本站按来源原文件直连播放，保留署名与原站入口，不下载转存、剪辑或重新上传音轨。中英文导读为本站原创，并非现代译文朗读。",
+      "basisEn": "LibriVox declares these texts and donated volunteer recordings public domain in the USA; protection may differ elsewhere. Audio streams from the original source file with attribution and source links, without editing or rehosting it. Bilingual introductions are original editorial notes, not a recorded modern translation."
+    }
+  },
+  {
+    "id": "lv-zh-herb-garden",
+    "theme": "connection",
+    "zh": "百草园的虫鸣与书屋的读书声，留住一段童年记忆。原文也包含民间传说，按自己的感受选择聆听。",
+    "en": "Garden sounds and the voices of a schoolroom preserve a childhood memory. The original essay also includes a folk tale; choose what feels right for your evening.",
+    "originalLanguage": "zh",
+    "author": "鲁迅",
+    "authorEn": "Lu Xun",
+    "work": "从百草园到三味书屋 · 散文",
+    "workEn": "From the Herb Garden to Three-Flavour Study",
+    "period": "1926",
+    "sourceUrl": "https://archive.org/details/chao_hua_si_she_jl_librivox",
+    "context": "百草园的虫鸣与书屋的读书声，留住一段童年记忆。原文也包含民间传说，按自己的感受选择聆听。",
+    "kind": "story",
+    "series": "朝花夕拾 · 散文选读",
+    "seriesEn": "Dawn Blossoms Plucked at Dusk · Selected Essays",
+    "chapter": 6,
+    "sleepSuitable": false,
+    "media": {
+      "provider": "archive",
+      "collection": "chao_hua_si_she_jl_librivox",
+      "file": "chaohuasishe_06_lu.mp3",
+      "duration": 634.82,
+      "credit": "LibriVox · Jing Li · 普通话",
+      "creditEn": "LibriVox · Jing Li · Mandarin",
+      "verifiedTitle": "06 从百草园到三味书屋"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "basis": "LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区可能不同。本站按来源原文件直连播放，保留署名与原站入口，不下载转存、剪辑或重新上传音轨。中英文导读为本站原创，并非现代译文朗读。",
+      "basisEn": "LibriVox declares these texts and donated volunteer recordings public domain in the USA; protection may differ elsewhere. Audio streams from the original source file with attribution and source links, without editing or rehosting it. Bilingual introductions are original editorial notes, not a recorded modern translation."
+    }
+  },
+  {
+    "id": "lv-zh-lake-storytelling",
+    "theme": "connection",
+    "zh": "跟着老残走近济南的山水与明湖边的说书声。古典游记体小说的完整第二回，并非全书，也不作纯风景音频介绍。",
+    "en": "Travel with Lao Can through Jinan’s scenery and the sound of storytelling by the lake. This is the complete second chapter of a classical travel novel, rather than the full book or a scenery-only recording.",
+    "originalLanguage": "zh",
+    "author": "刘鹗",
+    "authorEn": "Liu E",
+    "work": "老残游记 · 第二回",
+    "workEn": "The Travels of Lao Can · Chapter 2",
+    "period": "1903",
+    "sourceUrl": "https://archive.org/details/lao_can_you_ji_hc_librivox",
+    "context": "跟着老残走近济南的山水与明湖边的说书声。古典游记体小说的完整第二回，并非全书，也不作纯风景音频介绍。",
+    "kind": "story",
+    "series": "老残游记 · 古典小说选章",
+    "seriesEn": "The Travels of Lao Can · Selected Chapter",
+    "chapter": 2,
+    "sleepSuitable": false,
+    "media": {
+      "provider": "archive",
+      "collection": "lao_can_you_ji_hc_librivox",
+      "file": "laocanyouji_02_liu.mp3",
+      "duration": 1227.79,
+      "credit": "LibriVox · HC · 普通话",
+      "creditEn": "LibriVox · HC · Mandarin",
+      "verifiedTitle": "02 - Di Er Hui (Chapter 2)"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-23",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区可能不同。本站按来源原文件直连播放，保留署名与原站入口，不下载转存、剪辑或重新上传音轨。中英文导读为本站原创，并非现代译文朗读。",
+      "basisEn": "LibriVox declares these texts and donated volunteer recordings public domain in the USA; protection may differ elsewhere. Audio streams from the original source file with attribution and source links, without editing or rehosting it. Bilingual introductions are original editorial notes, not a recorded modern translation."
+    }
+  }
+]

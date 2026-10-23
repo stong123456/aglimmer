@@ -1,0 +1,74 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  afterListeningEnd,
+  classicListeningItem,
+  sourceAudioUrl,
+  sleepDeadline,
+  remainingSleepSeconds,
+  uniqueQueue,
+  type ListeningItem,
+} from '../lib/listening.ts';
+import { CLASSIC_QUOTES } from '../lib/quotes.ts';
+const queue = ['one', 'two', 'three'].map((id) => ({ id }) as ListeningItem);
+const settings = { autoNext: true, stopAfterId: '', deadline: 0, now: 1000 };
+test('continuous playback advances once and stops at the queue boundary without looping', () => {
+  assert.deepEqual(afterListeningEnd(queue, 'one', settings), { nextId: 'two', reason: 'next' });
+  assert.deepEqual(afterListeningEnd(queue, 'three', settings), {
+    nextId: null,
+    reason: 'complete',
+  });
+  assert.equal(afterListeningEnd(queue, 'unknown', settings).nextId, null);
+  assert.equal(afterListeningEnd(queue, 'one', { ...settings, autoNext: false }).reason, 'single');
+});
+test('the earlier sleep deadline or selected work stops automatic playback, including manual skips', () => {
+  assert.deepEqual(afterListeningEnd(queue, 'one', { ...settings, stopAfterId: 'two' }), {
+    nextId: 'two',
+    reason: 'next',
+  });
+  assert.equal(
+    afterListeningEnd(queue, 'two', { ...settings, stopAfterId: 'two' }).reason,
+    'target',
+  );
+  assert.equal(
+    afterListeningEnd(queue, 'three', { ...settings, stopAfterId: 'two' }).reason,
+    'target',
+  );
+  assert.equal(
+    afterListeningEnd(queue, 'one', { ...settings, deadline: 1000, stopAfterId: 'three' }).reason,
+    'timer',
+  );
+  assert.equal(
+    afterListeningEnd(queue, 'two', { ...settings, deadline: 1100, stopAfterId: 'two' }).reason,
+    'target',
+  );
+  assert.equal(
+    afterListeningEnd(queue, 'one', { ...settings, deadline: 999, autoNext: false }).reason,
+    'timer',
+  );
+});
+test('sleep timers bound custom values and compare absolute time after page suspension', () => {
+  assert.equal(sleepDeadline(30, 1000), 1801000);
+  assert.equal(sleepDeadline(240, 1000), 14401000);
+  for (const n of [0, -1, 0.5, 241, Infinity, NaN]) assert.equal(sleepDeadline(n, 1000), 0);
+  assert.equal(remainingSleepSeconds(61000, 1000), 60);
+  assert.equal(remainingSleepSeconds(61000, 61001), 0);
+  assert.equal(
+    afterListeningEnd(queue, 'one', { ...settings, deadline: 61000, now: 1800000 }).reason,
+    'timer',
+  );
+});
+test('source adapters preserve origin streams, official video IDs and stable queue identity', () => {
+  const audio = CLASSIC_QUOTES.find((q) => q.media.provider === 'archive')!,
+    video = CLASSIC_QUOTES.find((q) => q.media.provider === 'youtube')!;
+  const item = classicListeningItem(audio);
+  assert.equal(item.provider, 'audio');
+  assert.equal(new URL(item.audioUrl!).hostname, 'archive.org');
+  assert.ok(item.audioUrl!.includes('/download/'));
+  assert.equal(classicListeningItem(video).videoId, video.media.videoId);
+  assert.throws(() => sourceAudioUrl(video));
+  assert.deepEqual(
+    uniqueQueue([queue[0], queue[1], queue[0]]).map((i) => i.id),
+    ['one', 'two'],
+  );
+});

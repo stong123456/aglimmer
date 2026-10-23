@@ -1,8 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, Copy, Play, X } from 'lucide-react';
+import { ArrowRight, BookOpen, Copy, Play, Pause, Moon } from 'lucide-react';
 import { usePreferences } from './preferences';
-import { CLASSIC_QUOTES, QUOTE_THEMES, classicEmbedUrl, type ClassicQuote } from '@/lib/quotes';
+import type { ClassicQuote } from '@/lib/quotes';
+import { QUOTE_THEMES } from '@/lib/quote-themes';
+import { classicListeningItem } from '@/lib/listening';
+import { useListening } from './listening-player';
+import { useClassicSources } from './classic-sources';
+import { quietClassics } from './featured-listening';
 import type { Voice } from '@/lib/shared';
 export default function QuoteLibrary({
   compact = false,
@@ -19,49 +24,31 @@ export default function QuoteLibrary({
   collection?: 'all' | 'long';
 }) {
   const { locale } = usePreferences();
+  const listening = useListening();
+  const { hidden, error, reload, catalog } = useClassicSources();
   const L = (zh: string, en: string) => (locale === 'en' ? en : zh);
   const [theme, setTheme] = useState('all'),
     [query, setQuery] = useState(''),
     [language, setLanguage] = useState('all'),
-    [kind, setKind] = useState('all');
+    [kind, setKind] = useState('all'),
+    [series, setSeries] = useState('all');
   const [limit, setLimit] = useState(12),
-    [active, setActive] = useState(''),
     [notice, setNotice] = useState('');
-  const [hidden, setHidden] = useState<string[] | null>(null),
-    [error, setError] = useState(false),
-    [retry, setRetry] = useState(0);
   const [reportId, setReportId] = useState(''),
     [reason, setReason] = useState(''),
     [reportBusy, setReportBusy] = useState(false);
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
-    const controller = new AbortController();
-    setError(false);
-    setHidden(null);
-    void fetch('/api/classics', { signal: controller.signal })
-      .then(async (r) => {
-        if (!r.ok) throw Error();
-        const d = (await r.json()) as { hidden: string[] };
-        if (!Array.isArray(d.hidden)) throw Error();
-        setHidden(d.hidden);
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') setError(true);
-      });
-    return () => controller.abort();
-  }, [retry]);
-  useEffect(() => {
-    const close = () => setActive('');
-    window.addEventListener('glimmer:audio-play', close);
-    return () => window.removeEventListener('glimmer:audio-play', close);
-  }, []);
-  useEffect(() => {
-    setActive('');
     setLimit(12);
-  }, [theme, query, language, kind]);
-  const candidates = CLASSIC_QUOTES.filter(
-    (q) => !hidden?.includes(q.id) && (collection !== 'long' || q.kind === 'speech'),
+  }, [theme, query, language, kind, series]);
+  const candidates = (catalog ?? []).filter(
+    (q) =>
+      !hidden?.includes(q.id) &&
+      (collection !== 'long' || q.kind === 'speech' || q.kind === 'story'),
   );
+  const books = [
+    ...new Map(candidates.filter((q) => q.series).map((q) => [q.series!, q])).values(),
+  ];
   const filtered = compact
     ? candidates.filter((q) => ['clouds', 'sail', 'jobs'].includes(q.id))
     : candidates.filter(
@@ -69,7 +56,8 @@ export default function QuoteLibrary({
           (theme === 'all' || q.theme === theme) &&
           (language === 'all' || q.originalLanguage === language) &&
           (kind === 'all' || q.kind === kind) &&
-          `${q.zh} ${q.en} ${q.author} ${q.authorEn} ${q.work} ${q.workEn}`
+          (series === 'all' || q.series === series) &&
+          `${q.zh} ${q.en} ${q.author} ${q.authorEn} ${q.work} ${q.workEn} ${q.series ?? ''} ${q.seriesEn ?? ''}`
             .toLocaleLowerCase()
             .includes(query.trim().toLocaleLowerCase()),
       );
@@ -89,14 +77,11 @@ export default function QuoteLibrary({
     // Deep links are restored once source visibility has loaded, not after each filter edit.
   }, [hidden, compact, limit]);
   function open(q: ClassicQuote) {
-    if (active === q.id) {
-      setActive('');
+    if (listening.current?.catalogId === q.id) {
+      listening.toggle();
       return;
     }
-    document.querySelectorAll('audio').forEach((a) => a.pause());
-    window.speechSynthesis?.cancel();
-    window.dispatchEvent(new Event('glimmer:external-play'));
-    setActive(q.id);
+    listening.start(filtered.map(classicListeningItem), 'classic:' + q.id);
   }
   async function copy(q: ClassicQuote) {
     const url = new URL('https://aglimmer.xyz/');
@@ -156,8 +141,10 @@ export default function QuoteLibrary({
           ) : (
             <h1>
               {L(
-                collection === 'long' ? '留一点时间，听一场演讲' : '双语声音灵感馆',
-                collection === 'long' ? 'Time for a longer listen' : 'The listening library',
+                collection === 'long' ? '慢慢听 · 经典原声书架' : '双语声音灵感馆',
+                collection === 'long'
+                  ? 'Slow listening · Classic recordings'
+                  : 'The listening library',
               )}
             </h1>
           )}
@@ -178,8 +165,8 @@ export default function QuoteLibrary({
       </div>
       <p className="small-note">
         {L(
-          '网络经典精选 · 中英文导读 · 原始出处 · 来源播放器',
-          'Curated online classics · Bilingual introductions · Original sources · Source players',
+          '网络经典精选 · 中英文导读 · 原始出处 · 连续播放',
+          'Curated classics · Bilingual introductions · Original sources · Continuous listening',
         )}
       </p>
       {!compact ? (
@@ -230,19 +217,66 @@ export default function QuoteLibrary({
               <select value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option value="all">{L('全部内容', 'All types')}</option>
                 <option value="poetry">{L('诗词朗读', 'Poetry readings')}</option>
+                <option value="story">
+                  {L('故事、散文与有声书', 'Stories, essays and audiobooks')}
+                </option>
                 <option value="speech">{L('成长演讲', 'Inspiring talks')}</option>
                 <option value="film">{L('经典台词', 'Film monologues')}</option>
               </select>
             </label>
           </div>
+          {books.length ? (
+            <label className="library-series">
+              {L('选择一本书或诗集', 'Choose a book or collection')}
+              <select value={series} onChange={(e) => setSeries(e.target.value)}>
+                <option value="all">{L('全部书籍与合集', 'All books and collections')}</option>
+                {books.map((q) => (
+                  <option value={q.series} key={q.series}>
+                    {L(q.series!, q.seriesEn ?? q.series!)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
         </>
+      ) : null}
+      {!compact && hidden !== null ? (
+        <div className="library-listen-actions">
+          <button
+            className="button primary"
+            disabled={!filtered.length}
+            onClick={() => listening.start(filtered.map(classicListeningItem))}
+          >
+            <Play size={16} />
+            {L('连续收听筛选结果', 'Play this selection continuously')}
+          </button>
+          <button
+            className="button outline"
+            disabled={!quietClassics(filtered).length}
+            onClick={() =>
+              listening.start(quietClassics(filtered).map(classicListeningItem), undefined, {
+                sleep: true,
+                minutes: 30,
+              })
+            }
+          >
+            <Moon size={16} />
+            {L('睡前 30 分钟', '30-minute bedtime listen')}
+          </button>
+          <p className="small-note">
+            {L(
+              '录音与章节分开计数；睡眠模式可选择播完某一部停止，或自行设置 1–240 分钟。',
+              'Recordings include book chapters. Sleep mode can stop after a chosen item or a 1–240 minute timer.',
+            )}
+          </p>
+        </div>
       ) : null}
       {error ? (
         <div role="alert">
           <p>
             {L('暂时无法核对素材状态，请稍后重试。', 'Source availability could not be checked.')}
           </p>
-          <button className="button outline small" onClick={() => setRetry((n) => n + 1)}>
+          <button className="button outline small" onClick={reload}>
             {L('重新加载', 'Try again')}
           </button>
         </div>
@@ -253,15 +287,17 @@ export default function QuoteLibrary({
           {!compact ? (
             <p className="small-note" role="status">
               {L(
-                `找到 ${filtered.length} 部作品 · 已展示 ${shown.length} 部`,
-                `Found ${filtered.length} works · Showing ${shown.length}`,
+                `找到 ${filtered.length} 段原声与章节 · 已展示 ${shown.length} 段`,
+                `Found ${filtered.length} recordings / chapters · Showing ${shown.length}`,
               )}
             </p>
           ) : null}
           <div className="classic-grid">
             {shown.map((q) => (
               <article
-                className={active === q.id ? 'classic-card is-current' : 'classic-card'}
+                className={
+                  listening.current?.catalogId === q.id ? 'classic-card is-current' : 'classic-card'
+                }
                 key={q.id}
                 data-quote={q.id}
                 tabIndex={-1}
@@ -273,7 +309,10 @@ export default function QuoteLibrary({
                   )}
                 </span>
                 <h3>{L(q.work, q.workEn)}</h3>
-                <p className="classic-author">{L(q.author, q.authorEn)}</p>
+                <p className="classic-author">
+                  {L(q.author, q.authorEn)}
+                  {q.series ? ` · ${L(q.series, q.seriesEn ?? q.series)}` : ''}
+                </p>
                 <blockquote>
                   <p lang="zh-CN" data-original>
                     {q.zh}
@@ -297,40 +336,23 @@ export default function QuoteLibrary({
                   <button
                     className="button outline small"
                     onClick={() => open(q)}
-                    aria-expanded={active === q.id}
+                    aria-pressed={listening.current?.catalogId === q.id && listening.playing}
                   >
                     <span aria-hidden>
-                      {active === q.id ? <X size={16} /> : <Play size={16} />}
+                      {listening.current?.catalogId === q.id && listening.playing ? (
+                        <Pause size={16} />
+                      ) : (
+                        <Play size={16} />
+                      )}
                     </span>
-                    {active === q.id
-                      ? L('关闭播放器', 'Close player')
-                      : L('打开原声播放器', 'Open source player')}
+                    {listening.current?.catalogId === q.id && listening.playing
+                      ? L('暂停收听', 'Pause listening')
+                      : L('播放原声', 'Play original recording')}
                   </button>
                   <a className="text-button" href={q.sourceUrl} target="_blank" rel="noreferrer">
                     {L('在原站收听 ↗', 'Listen at source ↗')}
                   </a>
                 </div>
-                {active === q.id ? (
-                  <div className="classic-player">
-                    <p className="small-note">
-                      {L(
-                        '此播放器连接第三方来源；如无法播放，请打开原站。睡眠定时仅对本站录音播放器生效。',
-                        'This player connects to the source service. Use its original page if playback fails. The sleep timer applies only to A Glimmer recordings.',
-                      )}
-                    </p>
-                    <iframe
-                      title={`${q.workEn} — ${q.media.creditEn}`}
-                      src={classicEmbedUrl(q)}
-                      allow="fullscreen; encrypted-media; picture-in-picture"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      className={q.media.provider === 'youtube' ? 'video' : 'audio'}
-                    />
-                    <button className="text-button" onClick={() => setActive('')}>
-                      {L('关闭并停止来源播放', 'Close and stop source playback')}
-                    </button>
-                  </div>
-                ) : null}
                 {!compact ? (
                   <>
                     <p>{locale === 'en' ? `Reflection: ${q.en}` : q.context}</p>
@@ -427,6 +449,7 @@ export default function QuoteLibrary({
                   setQuery('');
                   setLanguage('all');
                   setKind('all');
+                  setSeries('all');
                 }}
               >
                 {L('清除筛选', 'Clear filters')}

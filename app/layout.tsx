@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ListeningProvider } from './listening-player';
+import { ClassicSourcesProvider } from './classic-sources';
 import { PreferencesProvider } from './preferences';
 export const metadata: Metadata = {
   title: '一点光 · A Glimmer',
@@ -16,7 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `try{var p=JSON.parse(localStorage.getItem('aglimmer-preferences')||'{}');if(['warm','night','pink'].includes(p.theme))document.documentElement.dataset.theme=p.theme;}catch(e){}`,
           }}
         />
-        <PreferencesProvider>{children}</PreferencesProvider>
+        <PreferencesProvider>
+          <ClassicSourcesProvider>
+            <ListeningProvider>{children}</ListeningProvider>
+          </ClassicSourcesProvider>
+        </PreferencesProvider>
       </body>
     </html>
   );

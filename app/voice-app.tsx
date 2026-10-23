@@ -30,8 +30,12 @@ import AdminOperations from './admin-operations';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
 import { AnnualRecap, CalendarReminder } from './memory-tools';
+import FeaturedListening from './featured-listening';
+import { useListening } from './listening-player';
+import { voiceListeningItem } from '@/lib/listening';
 import QuoteLibrary from './quote-library';
-import { QUOTE_THEMES, type ClassicQuote } from '@/lib/quotes';
+import type { ClassicQuote } from '@/lib/quotes';
+import { QUOTE_THEMES } from '@/lib/quote-themes';
 import { podcastChapters, resumePosition } from '@/lib/podcast';
 import PodcastShelf from './podcast-shelf';
 import AuthDialog from './auth-dialog';
@@ -147,6 +151,7 @@ function Landscape() {
 
 export default function VoiceApp() {
   const { locale, t, theme } = usePreferences();
+  const listening = useListening();
   const [authOpen, setAuthOpen] = useState(false);
   const [postcard, setPostcard] = useState<Voice | null>(null);
   const [studioStep, setStudioStep] = useState(1);
@@ -306,6 +311,7 @@ export default function VoiceApp() {
     const prior = priorAccount.current;
     priorAccount.current = user?.userId ?? null;
     if (prior && prior !== user?.userId) {
+      window.dispatchEvent(new Event('glimmer:account-change'));
       audioRef.current?.pause();
       if (audioRef.current) audioRef.current.removeAttribute('src');
       window.speechSynthesis?.cancel();
@@ -324,6 +330,8 @@ export default function VoiceApp() {
     const stop = () => {
       audioRef.current?.pause();
       setIsPlaying(false);
+      setPlaying(null);
+      setSleepMinutes(0);
     };
     window.addEventListener('glimmer:external-play', stop);
     return () => window.removeEventListener('glimmer:external-play', stop);
@@ -1527,6 +1535,7 @@ export default function VoiceApp() {
                   </div>
                   <Landscape />
                 </section>
+                <FeaturedListening onExplore={() => navigate('podcast')} />
                 <section className="wall-section">
                   {voices[0] && canMakePostcard(voices[0]) ? (
                     <div className="postcard-invite">
@@ -1544,14 +1553,6 @@ export default function VoiceApp() {
                     voices={voices}
                     playingId={playing?.id}
                     onPlay={(v) => void play(v)}
-                  />
-                  <QuoteLibrary
-                    compact
-                    onExplore={() => navigate('quotes')}
-                    onStart={startFromQuote}
-                    onPlay={(v) => void play(v)}
-                    playingId={playing?.id}
-                    isPlaying={isPlaying}
                   />
                   <div className="podcast-invite">
                     <div>
@@ -1754,18 +1755,18 @@ export default function VoiceApp() {
             ) : null}
             {view === 'podcast' ? (
               <>
+                <QuoteLibrary collection="long" onStart={startFromQuote} />
                 <PodcastShelf
-                  onPlay={(v) => void play(v)}
+                  onPlay={(v, list) => listening.start((list ?? [v]).map(voiceListeningItem), v.id)}
                   onCreate={createPodcast}
                   onDetails={setSelected}
-                  playingId={playing?.id}
+                  playingId={listening.current?.id}
                   timer={sleepMinutes}
                   onTimer={(minutes) => {
                     sleepDeadline.current = Date.now() + minutes * 60000;
                     setSleepMinutes(minutes);
                   }}
                 />
-                <QuoteLibrary collection="long" onStart={startFromQuote} />
               </>
             ) : null}
             {view === 'inspiration' ? (
@@ -2625,7 +2626,7 @@ export default function VoiceApp() {
                 <section>
                   <h2>经典素材的出处与权利。</h2>
                   <p>
-                    声音灵感馆整理已有的诗词朗读、官方演讲与电影独白，通过来源播放器展示，不转存或剪辑音轨。中英文为本站导读或公版原句的自主意译，不代表官方字幕。LibriVox
+                    声音灵感馆整理已有的诗词朗读、官方演讲与电影独白，公版录音连接来源文件播放，官方演讲保留视频播放器，不转存或剪辑音轨。中英文为本站导读或公版原句的自主意译，不代表官方字幕。LibriVox
                     的公有领域声明以美国为依据，其他地区可能不同。每条素材保留来源与使用说明；版权或出处问题可直接反馈，审核员可以暂停展示并核对。
                   </p>
                 </section>
@@ -2665,6 +2666,7 @@ export default function VoiceApp() {
             ref={audioRef}
             preload="none"
             onPlay={(e) => {
+              window.dispatchEvent(new Event('glimmer:audio-play'));
               if (sleepMinutes > 0 && Date.now() >= sleepDeadline.current) {
                 e.currentTarget.pause();
                 setSleepMinutes(0);

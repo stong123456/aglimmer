@@ -256,6 +256,7 @@ try {
   for (const query of ['before=bad', 'mode=invalid', 'length=invalid', 'q=' + 'a'.repeat(101)])
     assert.equal((await request('/api/voices?' + query)).r.status, 400);
   assert.deepEqual((await request('/api/classics')).d.hidden, []);
+  assert.ok((await request('/api/classics?catalog=1')).d.items.length >= 700);
   assert.equal(
     (
       await request('/api/classics/report', '', 'POST', {
@@ -298,6 +299,7 @@ try {
     200,
   );
   assert.deepEqual((await request('/api/classics')).d.hidden, ['jobs']);
+  assert.ok(!(await request('/api/classics?catalog=1')).d.items.some((q) => q.id === 'jobs'));
   const review = await request('/api/admin', a.cookie);
   assert.ok(review.d.reports.some((r) => r.voice_id === 'quote:jobs' && r.classicHidden));
   assert.equal(

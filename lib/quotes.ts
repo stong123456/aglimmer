@@ -1,11 +1,8 @@
 import catalog from './classic-catalog.json' with { type: 'json' };
-export const QUOTE_THEMES = [
-  { id: 'rest', label: '慢一点也没关系', labelEn: 'Room to rest', mood: '有点累' },
-  { id: 'courage', label: '借一点勇气', labelEn: 'A little courage', mood: '需要勇气' },
-  { id: 'begin', label: '重新出发', labelEn: 'Begin again', mood: '重新开始' },
-  { id: 'hope', label: '给心留一束光', labelEn: 'Keep a little hope', mood: '给未来的我' },
-  { id: 'connection', label: '有人与你共鸣', labelEn: 'Human connection', mood: '有点累' },
-] as const;
+import extra from './classic-catalog-extra.json' with { type: 'json' };
+import chineseLong from './classic-catalog-chinese-long.json' with { type: 'json' };
+import { QUOTE_THEMES } from './quote-themes.ts';
+export { QUOTE_THEMES } from './quote-themes.ts';
 export type ClassicQuote = {
   id: string;
   theme: (typeof QUOTE_THEMES)[number]['id'];
@@ -19,7 +16,10 @@ export type ClassicQuote = {
   period: string;
   sourceUrl: string;
   context: string;
-  kind: 'poetry' | 'speech' | 'film';
+  kind: 'poetry' | 'speech' | 'film' | 'story';
+  series?: string;
+  seriesEn?: string;
+  sleepSuitable?: boolean;
   media: {
     provider: 'archive' | 'youtube';
     collection?: string;
@@ -38,7 +38,7 @@ export type ClassicQuote = {
     basisEn: string;
   };
 };
-export const CLASSIC_QUOTES = catalog as ClassicQuote[];
+export const CLASSIC_QUOTES = [...catalog, ...extra, ...chineseLong] as ClassicQuote[];
 // Player URLs are composed only from the reviewed catalog, never from user input.
 export function classicEmbedUrl(q: ClassicQuote): string {
   if (q.media.provider === 'youtube')

@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CLASSIC_QUOTES, QUOTE_THEMES, classicEmbedUrl } from '../lib/quotes.ts';
-test('reviewed source collection has 45 distinct works across five themes', () => {
-  assert.equal(CLASSIC_QUOTES.length, 45);
-  assert.equal(new Set(CLASSIC_QUOTES.map((q) => q.id)).size, 45);
+test('reviewed source collection has a large deduplicated catalog across five themes', () => {
+  assert.ok(CLASSIC_QUOTES.length >= 700);
+  assert.equal(new Set(CLASSIC_QUOTES.map((q) => q.id)).size, CLASSIC_QUOTES.length);
   assert.equal(
     new Set(CLASSIC_QUOTES.map((q) => q.sourceUrl + '#' + (q.media.file ?? ''))).size,
-    45,
+    CLASSIC_QUOTES.length,
   );
   assert.equal(new Set(CLASSIC_QUOTES.map((q) => q.theme)).size, QUOTE_THEMES.length);
-  assert.equal(CLASSIC_QUOTES.filter((q) => q.kind === 'poetry').length, 30);
+  assert.ok(CLASSIC_QUOTES.filter((q) => q.kind === 'poetry').length >= 320);
+  assert.ok(CLASSIC_QUOTES.filter((q) => q.kind === 'story').length >= 400);
   assert.equal(CLASSIC_QUOTES.filter((q) => q.kind === 'speech').length, 14);
   for (const q of CLASSIC_QUOTES) {
     assert.ok(q.zh && q.en && q.author && q.work && q.media.credit && q.rights.basis);

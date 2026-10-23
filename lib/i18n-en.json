@@ -739,5 +739,7 @@
   "探索双语灵感馆": "Explore the listening library",
   "经典素材的出处与权利。": "Sources and rights for curated classics.",
   "暂停素材展示": "Pause this source entry",
-  "恢复素材展示": "Restore this source entry"
+  "恢复素材展示": "Restore this source entry",
+  "社区长声音": "Community long recordings",
+  "点击播放后可打开睡眠模式，设置连续收听、倒计时或播完指定作品停止。进度仅保存在此浏览器。": "After starting playback, open sleep mode to set continuous listening, a timer or a selected endpoint. Progress stays in this browser."
 }
