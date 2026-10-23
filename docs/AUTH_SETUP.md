@@ -1,6 +1,8 @@
 # 邮箱登录接通步骤
 
-已完成邮箱 → 六位验证码 → 首次选择昵称的产品界面与服务端代码。目前没有平台配置，真实邮件尚未发送。以下账户由产品所有者注册，代码不会自动注册平台账户或发真实邮件。
+已完成邮箱 → 数字验证码 → 首次选择昵称的产品界面与服务端代码。网站已连接独立 Supabase 项目 `aglimmer-production`（`fwkdfvocajocmcrfszhd`，新加坡 Free），原项目不再用于本站登录。真实邮件送达仍需验收，代码不会自动发真实测试邮件。
+
+2026-10-23：Site URL 已设为 `https://aglimmer.xyz`；邮箱确认开启；保留新项目默认八位 OTP，将过期时间设为 600 秒。Resend 发信域名 `mail.aglimmer.xyz` 已通过 DNS 验证。自定义 SMTP 已保存，发信密钥限制为该域名的 Sending access；Magic link or OTP 与 Confirm sign up 已保存品牌数字验证码模板。真实 SMTP 送达与登录仍需产品所有者验收，没有自动发送测试邮件。
 
 ## 1. Supabase：先免费创建项目
 
@@ -25,11 +27,11 @@ ADMIN_USER_IDS=""
 
 `.dev.vars` 已排除在 Git 和源码 ZIP 外。填写后重启本地开发服务器。不要修改 `.openai/hosting.json` 来存这些值；正式部署时使用环境变量配置。
 
-## 3. 把邮件改为六位验证码
+## 3. 把邮件改为数字验证码
 
-Supabase 的邮箱无密码登录默认邮件模板可能发送链接。需要在 Authentication 的 Email Templates 中，将 **Magic Link** 模板改为 `docs/email/otp-template.html`，并同步检查 **Confirm Signup** 模板，让首次注册也显示 `{{ .Token }}`。
+Supabase 的邮箱无密码登录默认邮件模板可能发送链接。需要在 Authentication 的 Emails 中，将 **Magic link or OTP** 模板改为 `docs/email/otp-template.html`，并同步检查 **Confirm sign up** 模板，让首次注册也显示 `{{ .Token }}`。当前免费项目界面要求先配置自定义 SMTP 才能编辑模板，不必为此升级 Pro。
 
-主题建议：`一点光 · 你的登录验证码`。保留 Email 验证，不要为了省事关闭邮箱确认。使用六位 OTP，并把 Email OTP expiration 设置为 600 秒；这项有效期是在 Supabase 配置，不是由浏览器计时器保证。
+主题建议：`一点光 · 你的登录验证码`。保留 Email 验证，不要为了省事关闭邮箱确认。新项目使用八位 OTP；网站同时兼容旧项目的六位格式，验证码是否正确仍完全由 Supabase 验证。Email OTP expiration 设置为 600 秒；这项有效期是在 Supabase 配置，不是由浏览器计时器保证。
 
 官方参考：[邮箱 OTP](https://supabase.com/docs/guides/auth/auth-email-passwordless)、[邮件模板变量](https://supabase.com/docs/guides/auth/auth-email-templates)。
 
@@ -54,7 +56,7 @@ Supabase 的邮箱无密码登录默认邮件模板可能发送链接。需要�
 
 ## 6. 真实验收
 
-接通后由产品所有者使用自己的邮箱：收六位码 → 成功登录 → 选择昵称 → 保存声音 → 退出 → 再登录 → 档案仍在。再用另一个自有测试账户确认不能查看第一个账户的私密录音。验证 QQ、163 或实际目标用户邮箱的送达情况。
+接通后由产品所有者使用自己的邮箱：收八位码 → 成功登录 → 选择昵称 → 保存声音 → 退出 → 再登录 → 档案仍在。再用另一个自有测试账户确认不能查看第一个账户的私密录音。验证 QQ、163 或实际目标用户邮箱的送达情况。
 
 现有验证覆盖本地演示、SDK 和构建后 Worker 的模拟身份供应商、Cookie 往返/清理、产品 ID 映射、发送冷却及错误状态，不能代替真实 SMTP 送达验证。没有生成假验证码来假装平台已接通。
 

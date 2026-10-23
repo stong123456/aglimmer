@@ -28,7 +28,7 @@
 
 React 19 / TypeScript / Vinext（Next.js App Router API）/ Cloudflare Workers / D1 / R2。
 
-账户使用 **Supabase Auth 邮箱验证码**，注册和登录合一。Resend 在 Supabase 后台作为邮件供应商配置；本网站不保存密码，也不需要 Resend 私钥。平台账户由产品所有者注册，真实邮件暂未接通。接通步骤见 [邮箱登录配置](docs/AUTH_SETUP.md)。
+账户使用 **Supabase Auth 邮箱验证码**，注册和登录合一。独立身份项目已连接，Resend 在 Supabase 后台作为邮件供应商配置；本网站不保存密码，也不需要 Resend 私钥。新项目使用八位验证码，网站同时兼容六位格式；真实邮件送达仍待所有者验收。配置记录见 [邮箱登录配置](docs/AUTH_SETUP.md)。
 
 本地未配置平台时，登录弹窗明确提示未接通，并提供仅开发可用的演示账户。生产不会信任客户端伪造的身份请求头，也不会自动将首位用户设为审核员。生产审核员通过 ADMIN_USER_IDS 设置，使用 `/api/me` 返回的产品用户 ID。
 

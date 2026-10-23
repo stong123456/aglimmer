@@ -13,6 +13,10 @@ test('email normalization and OTP validation', () => {
   assert.equal(normalizeEmail('bad\n@example.com'), null);
   assert.equal(normalizeEmail('no-address'), null);
   assert.ok(validOtp('012345'));
+  assert.ok(validOtp('01234567'));
+  assert.equal(validOtp('0123456'), false);
+  assert.equal(validOtp('012345678'), false);
+  assert.equal(validOtp(12345678), false);
   assert.equal(validOtp('12345'), false);
   assert.equal(validOtp('abcdef'), false);
 });
@@ -92,7 +96,7 @@ test('SDK verification writes cookies, asks provider for identity, then clears s
     if (path.endsWith('/verify')) {
       const body = JSON.parse(String(init?.body));
       assert.equal(body.type, 'email');
-      assert.equal(body.token, '012345');
+      assert.equal(body.token, '01234567');
       return Response.json({
         access_token: token,
         refresh_token: 'test-refresh-only',
@@ -128,7 +132,7 @@ test('SDK verification writes cookies, asks provider for identity, then clears s
   );
   const verified = await client.auth.verifyOtp({
     email: 'you@example.com',
-    token: '012345',
+    token: '01234567',
     type: 'email',
   });
   assert.equal(verified.error, null);

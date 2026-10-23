@@ -4,7 +4,7 @@ export function normalizeEmail(value: unknown) {
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 export function validOtp(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{6}$/.test(value);
+  return typeof value === 'string' && /^(?:\d{6}|\d{8})$/.test(value);
 }
 export function validSupabaseConfig(url: string, key: string) {
   try {

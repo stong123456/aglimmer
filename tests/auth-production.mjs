@@ -91,7 +91,7 @@ mf = new Miniflare({
     if (url.pathname.endsWith('/otp')) return Response.json({ user: null, session: null });
     if (url.pathname.endsWith('/verify')) {
       const b = await request.json();
-      if (b.token !== '012345') return Response.json({ msg: 'Invalid OTP' }, { status: 403 });
+      if (b.token !== '01234567') return Response.json({ msg: 'Invalid OTP' }, { status: 403 });
       return Response.json({
         access_token: token,
         refresh_token: 'test-refresh-only',
@@ -145,11 +145,17 @@ try {
   assert.equal((await request('/api/auth/status')).d.ready, true);
   assert.equal((await request('/api/auth/send', 'POST', { email })).r.status, 200);
   assert.equal((await request('/api/auth/send', 'POST', { email })).r.status, 429);
+  const callsBeforeTruncatedCode = calls;
+  assert.equal(
+    (await request('/api/auth/verify', 'POST', { email, token: '0123456' })).r.status,
+    400,
+  );
+  assert.equal(calls, callsBeforeTruncatedCode, 'truncated code must not reach the provider');
   assert.equal(
     (await request('/api/auth/verify', 'POST', { email, token: '111111' })).r.status,
     400,
   );
-  const verified = await request('/api/auth/verify', 'POST', { email, token: '012345' });
+  const verified = await request('/api/auth/verify', 'POST', { email, token: '01234567' });
   assert.equal(verified.r.status, 200, JSON.stringify(verified.d));
   assert.equal(verified.d.isNew, true);
   assert.ok(

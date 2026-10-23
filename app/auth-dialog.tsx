@@ -159,7 +159,7 @@ export default function AuthDialog({
   }
   async function verify() {
     if (!validOtp(code)) {
-      setError('请输入六位数字验证码。');
+      setError('请填写邮件中的完整数字验证码。');
       return;
     }
     setBusy(true);
@@ -300,20 +300,20 @@ export default function AuthDialog({
                 }}
               >
                 <label>
-                  六位验证码
+                  邮箱验证码
                   <input
                     className="otp-input"
                     type="text"
                     autoComplete="one-time-code"
                     inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
+                    pattern="([0-9]{6}|[0-9]{8})"
+                    maxLength={8}
                     value={code}
                     onChange={(e) => {
                       setCode(e.target.value.replace(/\D/g, ''));
                       setError('');
                     }}
-                    placeholder="000000"
+                    placeholder="00000000"
                     required
                   />
                 </label>
