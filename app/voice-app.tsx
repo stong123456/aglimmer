@@ -1535,7 +1535,7 @@ export default function VoiceApp() {
                   </div>
                   <Landscape />
                 </section>
-                <FeaturedListening onExplore={() => navigate('podcast')} />
+                <FeaturedListening onExplore={() => navigate('quotes')} />
                 <section className="wall-section">
                   {voices[0] && canMakePostcard(voices[0]) ? (
                     <div className="postcard-invite">

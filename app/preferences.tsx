@@ -66,8 +66,8 @@ export function PreferencesMenu() {
   const { theme, locale, setTheme, setLocale, t } = usePreferences();
   return (
     <details className="preferences-menu">
-      <summary>
-        <Palette size={18} />
+      <summary aria-label={t('外观与语言')}>
+        <Palette size={18} aria-hidden />
         <span>{t('外观与语言')}</span>
       </summary>
       <div className="preferences-panel">
