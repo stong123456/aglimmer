@@ -741,5 +741,9 @@
   "暂停素材展示": "Pause this source entry",
   "恢复素材展示": "Restore this source entry",
   "社区长声音": "Community long recordings",
-  "点击播放后可打开睡眠模式，设置连续收听、倒计时或播完指定作品停止。进度仅保存在此浏览器。": "After starting playback, open sleep mode to set continuous listening, a timer or a selected endpoint. Progress stays in this browser."
+  "点击播放后可打开睡眠模式，设置连续收听、倒计时或播完指定作品停止。进度仅保存在此浏览器。": "After starting playback, open sleep mode to set continuous listening, a timer or a selected endpoint. Progress stays in this browser.",
+  "先听一段有出处的经典原声。社区投稿会单独标注。": "Begin with an attributed classic recording. Community contributions are labeled separately.",
+  "正在打开原声书架，请选择一段收听。": "Opening the original-audio collection. Choose a recording to begin.",
+  "声音与元数据分别存储在服务端对象存储和数据库中，可跨设备访问。我们不承诺永久保存。站内恢复副本每日加密生成，保留 7 天；定期做样本还原校验，但同站点副本不等于跨账号或异地备份。请定期使用完整导出功能，把原音频、文字稿、署名与日期保存在自己的设备，并另存一份备份。": "Recordings and metadata are stored server-side and available across devices. Permanent retention is not guaranteed. Daily encrypted internal recovery copies target seven days of retention and undergo sample restoration checks; they are not independent or off-site backups. Regularly export original audio, transcripts, signatures and dates, and keep an independent copy.",
+  "可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史恢复副本按 7 天周期清理；维护任务异常时可能延迟，需管理员处理。恢复前必须合并删除清单，避免已删除内容重新出现。": "Choose public or private visibility, make a public voice private, download, export or delete. Listeners may record public audio, so avoid sensitive identifying details. Deletion stops access on this site immediately. Recovery copies follow a seven-day cleanup cycle; a failed maintenance job may delay cleanup and requires operator action. Restoration must merge the latest deletion ledger to prevent deleted content from reappearing."
 }

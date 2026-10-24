@@ -255,8 +255,19 @@ try {
   assert.ok(!(await request('/api/voices?mode=all')).d.voices.some((v) => v.topic === 'podcast'));
   for (const query of ['before=bad', 'mode=invalid', 'length=invalid', 'q=' + 'a'.repeat(101)])
     assert.equal((await request('/api/voices?' + query)).r.status, 400);
-  assert.deepEqual((await request('/api/classics')).d.hidden, []);
-  assert.ok((await request('/api/classics?catalog=1')).d.items.length >= 700);
+  const withdrawn = (await request('/api/classics')).d.hidden;
+  assert.equal(withdrawn.length, 320);
+  assert.ok(withdrawn.includes('clouds'));
+  const activeCatalog = (await request('/api/classics?catalog=1')).d.items;
+  assert.ok(activeCatalog.length >= 480);
+  assert.ok(activeCatalog.some((q) => q.id === 'lv-zh-prose-gesheng'));
+  assert.ok(activeCatalog.some((q) => q.id === 'lv-zh-prose-congcong'));
+  assert.ok(!activeCatalog.some((q) => q.originalLanguage === 'zh' && q.kind === 'poetry'));
+  assert.equal(
+    (await request('/api/admin', a.cookie, 'POST', { action: 'restore_classic', id: 'clouds' })).r
+      .status,
+    409,
+  );
   assert.equal(
     (
       await request('/api/classics/report', '', 'POST', {
@@ -298,7 +309,7 @@ try {
       .status,
     200,
   );
-  assert.deepEqual((await request('/api/classics')).d.hidden, ['jobs']);
+  assert.deepEqual((await request('/api/classics')).d.hidden, [...withdrawn, 'jobs']);
   assert.ok(!(await request('/api/classics?catalog=1')).d.items.some((q) => q.id === 'jobs'));
   const review = await request('/api/admin', a.cookie);
   assert.ok(review.d.reports.some((r) => r.voice_id === 'quote:jobs' && r.classicHidden));
@@ -307,7 +318,7 @@ try {
       .status,
     200,
   );
-  assert.deepEqual((await request('/api/classics')).d.hidden, []);
+  assert.deepEqual((await request('/api/classics')).d.hidden, withdrawn);
   console.log(
     'PASS public source reports, duplicate handling, admin-only takedown, audit trail and restoration',
   );

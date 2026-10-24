@@ -4643,11 +4643,11 @@ body[data-listening=true] { padding-bottom:240px; }
 .sleep-mode .listening-meta p { font-size:14px; }
 .sleep-mode .listening-controls .play-button { width:64px; height:64px; border-color:var(--line); background:#263c46; color:var(--ink); }
 .sleep-mode button { color:var(--ink); }
-.sleep-mode .button.outline { border-color:var(--line); }
+.sleep-mode .button.outline { border-color:var(--line); background:#263c46; color:var(--ink); }
 .sleep-mode .icon-button { background:transparent; color:var(--ink); }
 .sleep-mode .listening-seek { accent-color:#c7d8cf; }
 .sleep-mode .listening-source-note { margin-top:24px; text-align:center; }
-.sleep-mode .small-note { color:var(--muted); }
+.sleep-mode .small-note { color:var(--muted) !important; }
 @media(max-width:800px) { .featured-listening-grid { grid-template-columns:1fr; } .featured-listening { padding:0 20px; margin-top:0; } .featured-listen-card { padding:24px; } .featured-listening .section-heading { align-items:flex-start; gap:18px; } .listening-settings-grid { grid-template-columns:1fr; gap:16px; } .listening-main { grid-template-columns:1fr; gap:12px; } .listening-deck { padding:14px 18px; max-height:85dvh; } .listening-meta h2 { font-size:18px; } .listening-heading { align-items:flex-start; gap:8px; } .listening-heading >div { gap:6px; } .listening-heading .text-button { font-size:11px; } .listening-video { height:220px; } .sleep-mode .listening-main { margin:28px auto 22px; } .sleep-mode.listening-deck { padding:22px; } .listening-shortcuts { flex-wrap:wrap; } }
 @media(prefers-reduced-motion:reduce) { .listening-deck * { scroll-behavior:auto; } }
 .library-series { display:flex; align-items:center; gap:16px; margin-top:18px; font-size:12px; }
@@ -4659,3 +4659,10 @@ body[data-listening=true] { padding-bottom:240px; }
 .featured-work-list button { display:flex; align-items:center; gap:8px; text-align:left; width:100%; padding:10px 0; border:0; background:none; color:var(--ink); font-size:12px; cursor:pointer; }
 .featured-work-list button span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .featured-work-list button small { max-width:36%; color:var(--muted); font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.curation-callout,.preservation-status { padding:20px 24px; margin:20px 0; border:1px solid var(--line); border-radius:16px; background:var(--tone-230); }
+.curation-callout { display:flex; gap:24px; align-items:center; justify-content:space-between; }
+.curation-callout p,.preservation-status p { font-size:13px; line-height:1.9; color:var(--muted); }
+.curation-callout small,.preservation-status small,.selection-meta { font-size:11px; line-height:1.8; color:var(--muted); }
+.curation-callout .button { flex-shrink:0; }
+.session-source-fallback .session-track { width:100%; margin:8px 0; }
+@media(max-width:700px){.curation-callout{align-items:flex-start;flex-direction:column;gap:14px;}}

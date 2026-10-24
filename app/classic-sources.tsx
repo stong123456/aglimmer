@@ -1,7 +1,9 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ClassicQuote } from '@/lib/quotes';
+type Health = { id: string; status: string; checked_at: string };
 type Sources = {
+  health: Health[];
   catalog: ClassicQuote[] | null;
   hidden: string[] | null;
   error: boolean;
@@ -10,6 +12,8 @@ type Sources = {
 const Context = createContext<Sources | null>(null);
 export function ClassicSourcesProvider({ children }: { children: ReactNode }) {
   const loaded = useRef(false);
+  const previousHidden = useRef<string[]>([]);
+  const [health, setHealth] = useState<Health[]>([]);
   const [catalog, setCatalog] = useState<ClassicQuote[] | null>(null);
   const [hidden, setHidden] = useState<string[] | null>(null),
     [error, setError] = useState(false),
@@ -25,13 +29,21 @@ export function ClassicSourcesProvider({ children }: { children: ReactNode }) {
           signal: controller.signal,
         });
         if (!r.ok) throw Error();
-        const d = (await r.json()) as { hidden: string[]; items?: ClassicQuote[] };
+        let d = (await r.json()) as { hidden: string[]; items?: ClassicQuote[]; health?: Health[] };
+        if (loaded.current && previousHidden.current.some((id) => !d.hidden?.includes(id))) {
+          const full = await fetch('/api/classics?catalog=1', { signal: controller.signal });
+          if (!full.ok) throw Error();
+          d = (await full.json()) as typeof d;
+          loaded.current = false;
+        }
         if (!Array.isArray(d.hidden)) throw Error();
         if (!loaded.current) {
           if (!Array.isArray(d.items)) throw Error();
           setCatalog(d.items);
           loaded.current = true;
         }
+        if (Array.isArray(d.health)) setHealth(d.health);
+        previousHidden.current = d.hidden;
         const normalized = [...d.hidden].sort();
         setHidden((previous) =>
           previous?.length === normalized.length && previous.every((id, i) => id === normalized[i])
@@ -61,6 +73,7 @@ export function ClassicSourcesProvider({ children }: { children: ReactNode }) {
     <Context.Provider
       value={{
         hidden,
+        health,
         catalog,
         error,
         reload: () => {

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "lv-zh-prose-gesheng",
+    "theme": "rest",
+    "zh": "从一次听歌的片刻，走进微雨、花园与清新的风。让耳朵带着心，留意日常里细小而丰盈的感受。",
+    "en": "A moment of listening opens onto fine rain, a garden and a fresh breeze. Let sound draw attention to small, vivid pleasures in everyday life.",
+    "originalLanguage": "zh",
+    "author": "朱自清",
+    "authorEn": "Zhu Ziqing",
+    "work": "歌声 · 散文",
+    "workEn": "The Sound of Song · Essay",
+    "period": "1921",
+    "sourceUrl": "https://archive.org/details/multilingual_short_stories_0906_librivox",
+    "context": "音乐与自然意象交织的现代散文；包含对春光消歇的细微感慨。",
+    "kind": "story",
+    "series": "踪迹 · 散文选读",
+    "seriesEn": "Traces · Selected Essays",
+    "sleepSuitable": true,
+    "media": {
+      "provider": "archive",
+      "collection": "multilingual_short_stories_0906_librivox",
+      "file": "chinese_gesheng_zhu_sn.mp3",
+      "duration": 188.94,
+      "credit": "LibriVox · Semantic Nuance · 中文",
+      "creditEn": "LibriVox · Semantic Nuance · Chinese",
+      "verifiedTitle": "Chinese - Ge Sheng"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-24",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "原作发表于1921／1922年，作者朱自清于1948年逝世。LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区保护状态可能不同。本站保留作者、朗读者与原站入口，按来源原文件播放，不下载转存或剪辑音轨。中英文文字为本站原创导读，不声称录音含双语朗读。",
+      "basisEn": "The essays were published in 1921/1922; Zhu Ziqing died in 1948. LibriVox declares its texts and volunteer-donated recordings public domain in the USA; protection may differ elsewhere. Original source audio plays with author, reader and source attribution, without editing or rehosting it. Bilingual text is original editorial guidance, not a claim of bilingual audio."
+    }
+  },
+  {
+    "id": "lv-zh-prose-congcong",
+    "theme": "connection",
+    "zh": "从燕子、杨柳与晨光出发，听朱自清追问那些悄悄流过的日子。适合愿意慢慢面对时间与心事的片刻。",
+    "en": "Swallows, willows and morning light lead into Zhu Ziqing’s reflection on passing days. A short essay for a moment of thoughtful listening.",
+    "originalLanguage": "zh",
+    "author": "朱自清",
+    "authorEn": "Zhu Ziqing",
+    "work": "匆匆 · 散文",
+    "workEn": "Days Passing · Essay",
+    "period": "1922",
+    "sourceUrl": "https://archive.org/details/multilingual_short_stories_0906_librivox",
+    "context": "包含时间流逝、泪水与惆怅的描写；按此刻的心情选择聆听。",
+    "kind": "story",
+    "series": "踪迹 · 散文选读",
+    "seriesEn": "Traces · Selected Essays",
+    "sleepSuitable": false,
+    "media": {
+      "provider": "archive",
+      "collection": "multilingual_short_stories_0906_librivox",
+      "file": "chinese_congcong_zhu_sn.mp3",
+      "duration": 227.85,
+      "credit": "LibriVox · Semantic Nuance · 中文",
+      "creditEn": "LibriVox · Semantic Nuance · Chinese",
+      "verifiedTitle": "Chinese - Cong Cong"
+    },
+    "rights": {
+      "status": "source-embed",
+      "checkedAt": "2026-10-24",
+      "licenseUrl": "https://creativecommons.org/licenses/publicdomain/",
+      "basis": "原作发表于1921／1922年，作者朱自清于1948年逝世。LibriVox 声明文本与志愿者捐赠录音在美国属于公有领域；其他地区保护状态可能不同。本站保留作者、朗读者与原站入口，按来源原文件播放，不下载转存或剪辑音轨。中英文文字为本站原创导读，不声称录音含双语朗读。",
+      "basisEn": "The essays were published in 1921/1922; Zhu Ziqing died in 1948. LibriVox declares its texts and volunteer-donated recordings public domain in the USA; protection may differ elsewhere. Original source audio plays with author, reader and source attribution, without editing or rehosting it. Bilingual text is original editorial guidance, not a claim of bilingual audio."
+    }
+  }
+]

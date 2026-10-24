@@ -1,3 +1,4 @@
+import { markDeleted } from '@/lib/maintenance';
 import { readBody } from '@/lib/server';
 import {
   db,
@@ -133,6 +134,7 @@ export async function DELETE(req: Request, c: Context) {
       .first<{ owner_id: string; audio_key: string }>();
     if (!v) throw new HttpError(404, '声音不存在');
     if (v.owner_id !== u.userId) throw new HttpError(403, '只能删除自己的声音');
+    await markDeleted('voice', id, v.audio_key);
     await db().batch([
       db().prepare('UPDATE voices SET parent_id=NULL WHERE parent_id=?').bind(id),
       db().prepare('DELETE FROM reactions WHERE voice_id=?').bind(id),

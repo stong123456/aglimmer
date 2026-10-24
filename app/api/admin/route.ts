@@ -101,6 +101,12 @@ export async function POST(req: Request) {
     if (['hide_classic', 'restore_classic'].includes(String(body.action))) {
       const quote = CLASSIC_QUOTES.find((q) => q.id === body.id);
       if (!quote) throw new HttpError(404, '没有找到这条经典素材');
+      if (
+        body.action === 'restore_classic' &&
+        quote.originalLanguage === 'zh' &&
+        quote.kind === 'poetry'
+      )
+        throw new HttpError(409, '这批录音已因听感反馈撤下，请先更换音源。');
       await db()
         .prepare(
           'INSERT INTO audit(id,actor_id,voice_id,action,note,created_at) VALUES(?,?,?,?,?,?)',
@@ -114,6 +120,13 @@ export async function POST(req: Request) {
           new Date().toISOString(),
         )
         .run();
+      if (body.action === 'restore_classic')
+        await db()
+          .prepare(
+            "UPDATE source_health SET status='uncertain',failures=0,next_check_at=?,note='Manually restored; next source check pending' WHERE id=?",
+          )
+          .bind(new Date().toISOString(), quote.id)
+          .run();
       return json({ ok: true });
     }
     if (body.action === 'resolve') {

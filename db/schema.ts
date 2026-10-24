@@ -119,3 +119,26 @@ export const closedIdentities = sqliteTable('closed_identities', {
   subjectHash: text('subject_hash').primaryKey(),
   closedAt: text('closed_at').notNull(),
 });
+export const sourceHealth = sqliteTable('source_health', {
+  id: text('id').primaryKey(),
+  status: text('status').notNull(),
+  failures: integer('failures').notNull().default(0),
+  checkedAt: text('checked_at').notNull(),
+  nextCheckAt: text('next_check_at').notNull(),
+  note: text('note').notNull().default(''),
+  httpStatus: integer('http_status'),
+});
+export const maintenanceRuns = sqliteTable('maintenance_runs', {
+  id: text('id').primaryKey(),
+  kind: text('kind').notNull(),
+  status: text('status').notNull(),
+  updatedAt: text('updated_at').notNull(),
+  createdAt: text('created_at').notNull(),
+  summary: text('summary').notNull().default('{}'),
+});
+export const backupDeletions = sqliteTable('backup_deletions', {
+  key: text('key').primaryKey(),
+  kind: text('kind').notNull(),
+  resourceId: text('resource_id').notNull(),
+  deletedAt: text('deleted_at').notNull(),
+});

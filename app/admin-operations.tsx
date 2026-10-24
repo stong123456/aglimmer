@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { LocalizedView } from './preferences';
+import MaintenancePanel from './maintenance-panel';
 type Request = {
   user_id: string;
   status: string;
@@ -76,6 +77,7 @@ export default function AdminOperations({ currentUserId }: { currentUserId: stri
   return (
     <LocalizedView>
       <section className="admin-operations">
+        <MaintenancePanel />
         <details>
           <summary>站点运行与上线检查</summary>
           <p>身份服务配置不等于邮件已送达。送达和恢复项目仅在真实验收后，由运营者记录完成。</p>

@@ -1,3 +1,4 @@
+import { markDeleted, markDeletedObjects } from './maintenance';
 import { db, bucket, HttpError } from './server';
 import { identityHash } from './identity-hash';
 // Only called for an explicit user request, after an administrator confirms
@@ -46,6 +47,8 @@ export async function purgeRequestedAccount(userId: string, actorId: string) {
     ]),
   ];
   const now = new Date().toISOString();
+  await markDeleted('account', userId);
+  await markDeletedObjects(userId, keys);
   const statements = [
     db()
       .prepare('UPDATE account_closures SET object_keys=?,updated_at=? WHERE user_id=?')

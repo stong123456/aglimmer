@@ -3,6 +3,11 @@ import { LocalizedView } from './preferences';
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 import { type Voice, dateLabel } from '@/lib/shared';
+import { useClassicSources } from './classic-sources';
+import { useListening } from './listening-player';
+import { classicListeningItem } from '@/lib/listening';
+import { firstListenSelection } from '@/lib/curation';
+import { usePreferences } from './preferences';
 
 const NEEDS = [
   { label: '歇一会儿', mood: '有点累', note: '不急着振作。先让自己安静地停一会儿。' },
@@ -18,10 +23,17 @@ export function GentleListening({
   playingId?: string;
   onPlay: (voice: Voice) => void;
 }) {
+  const sources = useClassicSources(),
+    listening = useListening(),
+    { locale } = usePreferences();
   const [need, setNeed] = useState(0);
   const [offset, setOffset] = useState(0);
   const matching = voices.filter((v) => v.mood === NEEDS[need].mood);
   const list = matching.slice(offset, offset + 3);
+  const fallback = firstListenSelection(
+    (sources.catalog ?? []).filter((q) => !sources.hidden?.includes(q.id)),
+    NEEDS[need].mood,
+  );
   return (
     <LocalizedView>
       {
@@ -78,7 +90,36 @@ export function GentleListening({
             ))}
           </div>
           {!list.length && (
-            <p role="status">这个角落还在等第一束光。可以先听听声音墙里的其他陪伴。</p>
+            <div className="session-source-fallback">
+              <p>
+                {locale === 'en'
+                  ? 'This corner is waiting for community voices. Begin with an attributed classic.'
+                  : '这个角落在等社区声音。先让一段有出处的经典陪你。'}
+              </p>
+              {fallback.slice(0, 3).map((q) => (
+                <button
+                  key={q.id}
+                  className="session-track"
+                  onClick={() =>
+                    listening.start(fallback.map(classicListeningItem), 'classic:' + q.id)
+                  }
+                >
+                  <Play size={16} aria-hidden />
+                  <span>
+                    {locale === 'en' ? q.workEn : q.work}
+                    <small>
+                      {locale === 'en' ? q.authorEn : q.author} ·{' '}
+                      {locale === 'en' ? 'Source recording' : '经典原声'}
+                    </small>
+                  </span>
+                </button>
+              ))}
+              {!fallback.length ? (
+                <button className="text-button" onClick={sources.reload}>
+                  {locale === 'en' ? 'Reload source recordings' : '重新打开原声书架'}
+                </button>
+              ) : null}
+            </div>
           )}
           {matching.length > 3 && (
             <button

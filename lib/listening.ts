@@ -6,12 +6,15 @@ export type ListeningItem = {
   titleEn: string;
   author: string;
   authorEn: string;
+  reader?: string;
+  readerEn?: string;
   duration: number;
   sourceUrl: string;
   provider: 'audio' | 'youtube';
   audioUrl?: string;
   videoId?: string;
   catalogId?: string;
+  gain?: number;
 };
 export function sourceAudioUrl(q: ClassicQuote): string {
   if (q.media.provider !== 'archive' || !q.media.collection || !q.media.file)
@@ -21,11 +24,14 @@ export function sourceAudioUrl(q: ClassicQuote): string {
 export function classicListeningItem(q: ClassicQuote): ListeningItem {
   return {
     id: 'classic:' + q.id,
+    gain: 1,
     catalogId: q.id,
     title: q.work,
     titleEn: q.workEn,
     author: q.author,
     authorEn: q.authorEn,
+    reader: q.media.credit,
+    readerEn: q.media.creditEn,
     duration: q.media.duration ?? 0,
     sourceUrl: q.sourceUrl,
     provider: q.media.provider === 'youtube' ? 'youtube' : 'audio',

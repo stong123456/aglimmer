@@ -117,6 +117,9 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
     generation = useRef(0),
     progressAt = useRef(0),
     hardStop = useRef(false);
+  const [softVolume, setSoftVolume] = useState(true);
+  const softVolumeRef = useRef(true);
+  softVolumeRef.current = softVolume;
   const settings = useRef({ autoNext: true, stopAfterId: '', deadline: 0 });
   settings.current = { autoNext, stopAfterId, deadline };
   const handlers = useRef({
@@ -206,6 +209,9 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event('glimmer:external-play'));
     if (item.provider === 'audio' && audio.current) {
       const element = audio.current;
+      try {
+        element.volume = softVolumeRef.current ? Math.max(0, Math.min(1, item.gain ?? 1)) : 1;
+      } catch {}
       element.src = item.audioUrl!;
       element.load();
       const epoch = generation.current;
@@ -555,6 +561,12 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
               </small>
               <h2>{locale === 'en' ? current.titleEn : current.title}</h2>
               <p>{locale === 'en' ? current.authorEn : current.author}</p>
+              {current.reader ? (
+                <p>
+                  {L('原声：', 'Recording: ')}
+                  {locale === 'en' ? (current.readerEn ?? current.reader) : current.reader}
+                </p>
+              ) : null}
               <a href={current.sourceUrl} target="_blank" rel="noreferrer">
                 {L('原始出处', 'Original source')} <ExternalLink size={12} aria-hidden />
               </a>
@@ -698,6 +710,24 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
                 />
                 {L('播放结束后自动下一段', 'Automatically play the next item')}
               </label>
+              {(current.gain ?? 1) < 1 ? (
+                <label className="listening-check">
+                  <input
+                    type="checkbox"
+                    checked={softVolume}
+                    onChange={(e) => {
+                      setSoftVolume(e.target.checked);
+                      if (audio.current)
+                        try {
+                          audio.current.volume = e.target.checked
+                            ? Math.max(0, Math.min(1, current.gain ?? 1))
+                            : 1;
+                        } catch {}
+                    }}
+                  />
+                  {L('柔和音量', 'Softer volume')}
+                </label>
+              ) : null}
               <label>
                 {L('倒计时停止（分钟）', 'Stop after (minutes)')}
                 <div className="listening-timer">
@@ -785,7 +815,7 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
                 )
               : current.catalogId
                 ? L(
-                    '连接原站音频，不转存。LibriVox 公版声明以美国为依据，地区状态可能不同。',
+                    '连接原站音频，保留朗读者署名，不转存或改动原文件。LibriVox 公版声明以美国为依据，地区状态可能不同。',
                     'Streams from the original source. LibriVox public-domain status is based on USA law and may differ elsewhere.',
                   )
                 : L('用户投稿，原始录音。', 'An original community recording.')}

@@ -1,6 +1,7 @@
 import catalog from './classic-catalog.json' with { type: 'json' };
 import extra from './classic-catalog-extra.json' with { type: 'json' };
 import chineseLong from './classic-catalog-chinese-long.json' with { type: 'json' };
+import chineseProse from './classic-catalog-prose-zh.json' with { type: 'json' };
 import { QUOTE_THEMES } from './quote-themes.ts';
 export { QUOTE_THEMES } from './quote-themes.ts';
 export type ClassicQuote = {
@@ -38,7 +39,18 @@ export type ClassicQuote = {
     basisEn: string;
   };
 };
-export const CLASSIC_QUOTES = [...catalog, ...extra, ...chineseLong] as ClassicQuote[];
+export const CLASSIC_QUOTES = [
+  ...catalog,
+  ...extra,
+  ...chineseLong,
+  ...chineseProse,
+] as ClassicQuote[];
+// These historical source records remain in the provenance files, but their
+// recordings were withdrawn after listener feedback. A source recovering from
+// a network failure must never silently restore an editorial withdrawal.
+export const WITHDRAWN_CLASSIC_IDS = CLASSIC_QUOTES.filter(
+  (q) => q.originalLanguage === 'zh' && q.kind === 'poetry',
+).map((q) => q.id);
 // Player URLs are composed only from the reviewed catalog, never from user input.
 export function classicEmbedUrl(q: ClassicQuote): string {
   if (q.media.provider === 'youtube')

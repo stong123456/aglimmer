@@ -5,10 +5,11 @@ import { usePreferences } from './preferences';
 import type { ClassicQuote } from '@/lib/quotes';
 import { QUOTE_THEMES } from '@/lib/quote-themes';
 import { classicListeningItem } from '@/lib/listening';
+import { quietChinese } from '@/lib/curation';
 import { useListening } from './listening-player';
 import { useClassicSources } from './classic-sources';
 import { quietClassics } from './featured-listening';
-import type { Voice } from '@/lib/shared';
+import { durationLabel, type Voice } from '@/lib/shared';
 export default function QuoteLibrary({
   compact = false,
   onExplore,
@@ -25,8 +26,9 @@ export default function QuoteLibrary({
 }) {
   const { locale } = usePreferences();
   const listening = useListening();
-  const { hidden, error, reload, catalog } = useClassicSources();
+  const { hidden, health, error, reload, catalog } = useClassicSources();
   const L = (zh: string, en: string) => (locale === 'en' ? en : zh);
+  const [quietOnly, setQuietOnly] = useState(false);
   const [theme, setTheme] = useState('all'),
     [query, setQuery] = useState(''),
     [language, setLanguage] = useState('all'),
@@ -40,17 +42,19 @@ export default function QuoteLibrary({
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
     setLimit(12);
-  }, [theme, query, language, kind, series]);
-  const candidates = (catalog ?? []).filter(
+  }, [theme, query, language, kind, series, quietOnly]);
+  const candidates = (quietOnly ? quietChinese(catalog ?? []) : (catalog ?? [])).filter(
     (q) =>
       !hidden?.includes(q.id) &&
-      (collection !== 'long' || q.kind === 'speech' || q.kind === 'story'),
+      (quietOnly || collection !== 'long' || q.kind === 'speech' || q.kind === 'story'),
   );
   const books = [
     ...new Map(candidates.filter((q) => q.series).map((q) => [q.series!, q])).values(),
   ];
   const filtered = compact
-    ? candidates.filter((q) => ['clouds', 'sail', 'jobs'].includes(q.id))
+    ? candidates.filter((q) =>
+        ['lv-zh-prose-gesheng', 'lv-zh-prose-congcong', 'jobs'].includes(q.id),
+      )
     : candidates.filter(
         (q) =>
           (theme === 'all' || q.theme === theme) &&
@@ -150,8 +154,8 @@ export default function QuoteLibrary({
           )}
           <p>
             {L(
-              '诗词里的片刻安静，演讲里的向前一步。',
-              'Quiet moments in poetry. New perspectives in memorable talks.',
+              '在中文故事与散文里放慢脚步，从真实表达中借一点力量。',
+              'Slow down with Chinese stories and essays. Find perspective in memorable talks.',
             )}
           </p>
         </div>
@@ -171,6 +175,61 @@ export default function QuoteLibrary({
       </p>
       {!compact ? (
         <>
+          <div className="curation-callout">
+            <div>
+              <strong>
+                {L('中文故事与散文 · 原声选读', 'Chinese stories and essays · Original readings')}
+              </strong>
+              <p>
+                {L(
+                  '让故事和日常风景陪你歇一会儿。每段保留朗读者、时长与原始出处。',
+                  'Take a break with stories and everyday scenes. Reader credits, durations and original sources accompany each recording.',
+                )}
+              </p>
+              <p>
+                {L(
+                  '中文长听 · 成人经典，非默认睡前故事',
+                  'Longer Chinese recordings · Adult classics, outside the default bedtime selection',
+                )}
+              </p>
+              <div className="chips">
+                {[
+                  ['社戏', 'Village Opera · 22 min'],
+                  ['老残游记', 'Lao Can · Chapter 2 · 20 min'],
+                ].map(([name, en]) => (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      setQuietOnly(false);
+                      setQuery(name);
+                      setTheme('all');
+                      setKind('all');
+                      setSeries('all');
+                      setLanguage('zh');
+                    }}
+                  >
+                    {L(name + ' · ' + (name === '社戏' ? '22' : '20') + '分钟', en)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              className="button outline small"
+              aria-pressed={quietOnly}
+              onClick={() => {
+                setQuietOnly(!quietOnly);
+                setTheme('all');
+                setQuery('');
+                setKind('all');
+                setSeries('all');
+                setLanguage('all');
+              }}
+            >
+              {quietOnly
+                ? L('返回全部素材', 'Back to all recordings')
+                : L('打开中文故事与散文', 'Open Chinese stories and essays')}
+            </button>
+          </div>
           <div className="chips" role="group" aria-label={L('按主题筛选', 'Filter by theme')}>
             <button
               aria-pressed={theme === 'all'}
@@ -313,6 +372,19 @@ export default function QuoteLibrary({
                   {L(q.author, q.authorEn)}
                   {q.series ? ` · ${L(q.series, q.seriesEn ?? q.series)}` : ''}
                 </p>
+                <p className="classic-reader">
+                  {L('原声：', 'Recording: ')}
+                  {L(q.media.credit, q.media.creditEn)}
+                </p>
+                <small className="classic-source-status">
+                  {q.media.duration ? `${durationLabel(q.media.duration)} · ` : ''}
+                  {q.originalLanguage === 'zh'
+                    ? L('中文原声', 'Chinese recording')
+                    : L('英文原声', 'English recording')}
+                  {health.find((h) => h.id === q.id)?.status === 'available'
+                    ? L(' · 来源响应正常', ' · Source responded')
+                    : ''}
+                </small>
                 <blockquote>
                   <p lang="zh-CN" data-original>
                     {q.zh}

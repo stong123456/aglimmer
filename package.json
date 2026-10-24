@@ -13,7 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts tests/podcast.test.ts tests/ui-safety.test.ts tests/admin-query.test.ts tests/backup-vault.test.mjs tests/channel-history.test.ts tests/memory.test.ts tests/verified-export.test.ts tests/quotes.test.ts tests/listening.test.ts",
+    "test": "node --experimental-strip-types --test tests/archive.test.ts tests/auth.test.ts tests/podcast.test.ts tests/ui-safety.test.ts tests/admin-query.test.ts tests/backup-vault.test.mjs tests/channel-history.test.ts tests/memory.test.ts tests/verified-export.test.ts tests/quotes.test.ts tests/listening.test.ts tests/maintenance.test.ts",
     "test:api": "node tests/api-smoke.mjs",
     "test:channels": "node tests/channels-smoke.mjs",
     "test:auth": "node tests/auth-smoke.mjs",
@@ -23,7 +23,8 @@
     "test:operations": "node tests/operations-production.mjs",
     "test:history": "node tests/channel-history-production.mjs",
     "check:live": "node scripts/check-live.mjs",
-    "test:release": "node tests/release-production.mjs"
+    "test:release": "node tests/release-production.mjs",
+    "test:maintenance": "node tests/maintenance-production.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

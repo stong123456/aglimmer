@@ -1,3 +1,4 @@
+import { markDeleted } from '@/lib/maintenance';
 import {
   identity,
   db,
@@ -65,7 +66,10 @@ export async function POST(req: Request) {
       await bucket().delete(key);
       throw e;
     }
-    if (old?.avatar_key) await bucket().delete(old.avatar_key);
+    if (old?.avatar_key) {
+      await markDeleted('avatar', u.userId, old.avatar_key);
+      await bucket().delete(old.avatar_key);
+    }
     return json({ avatarUrl: '/api/me/avatar?v=' + key.split('/').at(-1) }, 201);
   } catch (e) {
     return fail(e);
@@ -86,7 +90,10 @@ export async function DELETE(req: Request) {
       .bind(u.userId, old?.avatar_key ?? null)
       .run();
     if (old && !result.meta.changes) throw new HttpError(409, '头像刚刚发生变化，请刷新后重试。');
-    if (old?.avatar_key) await bucket().delete(old.avatar_key);
+    if (old?.avatar_key) {
+      await markDeleted('avatar', u.userId, old.avatar_key);
+      await bucket().delete(old.avatar_key);
+    }
     return json({ avatarUrl: null });
   } catch (e) {
     return fail(e);

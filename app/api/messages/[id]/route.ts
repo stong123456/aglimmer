@@ -1,3 +1,4 @@
+import { markDeleted } from '@/lib/maintenance';
 import {
   db,
   bucket,
@@ -20,6 +21,7 @@ export async function DELETE(req: Request, c: { params: Promise<{ id: string }> 
       .first();
     if (!r) throw new HttpError(404, '消息不存在');
     if (r.owner_id !== u.userId) throw new HttpError(403, '只能删除自己的消息');
+    await markDeleted('message', id, String(r.media_key ?? ''));
     await db().batch([
       db().prepare('DELETE FROM messages WHERE id=?').bind(id),
       db().prepare('DELETE FROM reports WHERE voice_id=?').bind(`message:${id}`),

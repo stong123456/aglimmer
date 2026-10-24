@@ -2,6 +2,8 @@
 import { ArrowRight, Moon, Play, Sparkles, Headphones } from 'lucide-react';
 import { type ClassicQuote } from '@/lib/quotes';
 import { classicListeningItem } from '@/lib/listening';
+import { quietChinese, orderedSelection, COURAGE_IDS, LONG_STORY_IDS } from '@/lib/curation';
+import { durationLabel } from '@/lib/shared';
 import { usePreferences } from './preferences';
 import { useClassicSources } from './classic-sources';
 import { useListening } from './listening-player';
@@ -19,19 +21,20 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
   const { hidden, error, reload, catalog } = useClassicSources(),
     listening = useListening();
   const available = (catalog ?? []).filter((q) => !hidden?.includes(q.id)),
-    night = quietClassics(available);
+    night = quietChinese(available),
+    bedtime = quietClassics(night);
   const selections = [
     {
       id: 'night',
-      title: L('今晚，安心慢慢听', 'A quieter end to your day'),
+      title: L('听一段中文故事与散文', 'Chinese stories and essays'),
       text: L(
-        '经典原声与诗词，30 分钟后停下来。',
-        'Classic readings and poetry. Stops after 30 minutes.',
+        '从一段日常出发，把节奏慢下来。真人原声，保留朗读者署名。',
+        'Everyday moments at an unhurried pace, with original readers credited.',
       ),
-      label: L('睡前 30 分钟', '30-minute bedtime listen'),
+      label: L('连续听中文选读', 'Listen to Chinese readings'),
       icon: Moon,
       values: night,
-      sleep: true,
+      sleep: false,
     },
     {
       id: 'courage',
@@ -42,19 +45,19 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
       ),
       label: L('连续收听', 'Listen continuously'),
       icon: Sparkles,
-      values: available.filter((q) => q.theme === 'courage'),
+      values: orderedSelection(available, COURAGE_IDS),
       sleep: false,
     },
     {
-      id: 'poetry',
-      title: L('给心留一首诗', 'A little poetry for the heart'),
+      id: 'stories',
+      title: L('在故事里，多停留一会儿', 'Stay a little longer in a story'),
       text: L(
-        '中英文经典，跟着声音看见更远的风景。',
-        'Chinese and English classics, one voice at a time.',
+        '中文成人经典，留给想慢慢听完一个故事的时刻。',
+        'Chinese classics for adults, for moments when a story deserves your time.',
       ),
-      label: L('开始诗词漫游', 'Begin a poetry journey'),
+      label: L('走进长篇故事', 'Explore longer stories'),
       icon: Headphones,
-      values: available.filter((q) => q.kind === 'poetry' && q.sleepSuitable !== false),
+      values: orderedSelection(available, LONG_STORY_IDS),
       sleep: false,
     },
   ];
@@ -90,6 +93,10 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
               <s.icon size={24} aria-hidden />
               <h3>{s.title}</h3>
               <p>{s.text}</p>
+              <small className="selection-meta">
+                {s.values.length}{' '}
+                {L('段 · 自然播完停止，不循环', 'items · Stops at the end, no looping')}
+              </small>
               <ul className="featured-work-list">
                 {s.values.slice(0, 3).map((q) => (
                   <li key={q.id}>
@@ -103,13 +110,18 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
                     >
                       <Play size={12} aria-hidden />
                       <span>{locale === 'en' ? q.workEn : q.work}</span>
-                      <small>{locale === 'en' ? q.authorEn : q.author}</small>
+                      <small>
+                        {locale === 'en' ? q.authorEn : q.author} ·{' '}
+                        {q.media.duration
+                          ? durationLabel(q.media.duration)
+                          : L('官方视频', 'Official video')}
+                      </small>
                     </button>
                   </li>
                 ))}
               </ul>
               <button
-                className={s.sleep ? 'button primary' : 'button outline'}
+                className={s.id === 'night' ? 'button primary' : 'button outline'}
                 disabled={hidden === null || !s.values.length}
                 onClick={() =>
                   listening.start(s.values.map(classicListeningItem), undefined, {
@@ -121,6 +133,20 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
                 <Play size={16} aria-hidden />
                 {s.label}
               </button>
+              {s.id === 'night' && bedtime.length ? (
+                <button
+                  className="text-button"
+                  onClick={() =>
+                    listening.start(bedtime.map(classicListeningItem), undefined, {
+                      sleep: true,
+                      minutes: 30,
+                    })
+                  }
+                >
+                  <Moon size={15} aria-hidden />
+                  {L('睡前听一段散文', 'An essay before sleep')}
+                </button>
+              ) : null}
             </article>
           ))}
         </div>

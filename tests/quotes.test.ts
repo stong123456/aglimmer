@@ -14,7 +14,7 @@ test('reviewed source collection has a large deduplicated catalog across five th
   assert.equal(CLASSIC_QUOTES.filter((q) => q.kind === 'speech').length, 14);
   for (const q of CLASSIC_QUOTES) {
     assert.ok(q.zh && q.en && q.author && q.work && q.media.credit && q.rights.basis);
-    assert.equal(q.rights.checkedAt, '2026-10-23');
+    assert.match(q.rights.checkedAt, /^2026-10-2[34]$/);
     assert.equal(new URL(q.sourceUrl).protocol, 'https:');
     const player = new URL(classicEmbedUrl(q));
     assert.ok(['archive.org', 'www.youtube-nocookie.com'].includes(player.hostname));

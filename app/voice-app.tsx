@@ -27,12 +27,15 @@ import { canMakePostcard } from '@/lib/postcard';
 import AvatarSettings from './avatar-settings';
 import AccountClosure from './account-closure';
 import AdminOperations from './admin-operations';
+import PreservationStatus from './preservation-status';
 import TopicChannel from './topic-channel';
 import { GentleListening, VoiceRings } from './gentle-experiences';
 import { AnnualRecap, CalendarReminder } from './memory-tools';
 import FeaturedListening from './featured-listening';
 import { useListening } from './listening-player';
-import { voiceListeningItem } from '@/lib/listening';
+import { voiceListeningItem, classicListeningItem } from '@/lib/listening';
+import { useClassicSources } from './classic-sources';
+import { firstListenSelection } from '@/lib/curation';
 import QuoteLibrary from './quote-library';
 import type { ClassicQuote } from '@/lib/quotes';
 import { QUOTE_THEMES } from '@/lib/quote-themes';
@@ -152,6 +155,7 @@ function Landscape() {
 export default function VoiceApp() {
   const { locale, t, theme } = usePreferences();
   const listening = useListening();
+  const classicSources = useClassicSources();
   const [authOpen, setAuthOpen] = useState(false);
   const [postcard, setPostcard] = useState<Voice | null>(null);
   const [studioStep, setStudioStep] = useState(1);
@@ -814,7 +818,18 @@ export default function VoiceApp() {
   function randomPlay() {
     const list = filtered.length ? filtered : voices;
     if (!list.length) {
-      notify('这个心情还没有声音，换一个试试吧。');
+      const sources = firstListenSelection(
+        (classicSources.catalog ?? []).filter((q) => !classicSources.hidden?.includes(q.id)),
+        mood,
+      );
+      if (sources.length) {
+        listening.start(sources.map(classicListeningItem));
+        notify('先听一段有出处的经典原声。社区投稿会单独标注。');
+      } else {
+        navigate('quotes');
+        if (classicSources.error) classicSources.reload();
+        notify('正在打开原声书架，请选择一段收听。');
+      }
       return;
     }
     const available = list.filter((v) => v.id !== playing?.id);
@@ -2611,8 +2626,11 @@ export default function VoiceApp() {
                 </section>
                 <section>
                   <h2>关于十年、二十年的保存。</h2>
+                  <PreservationStatus />
                   <p>
-                    声音与元数据分别存储在服务端对象存储和数据库中，可跨设备访问。我们不承诺永久保存；长期运营需要持续维护与备份。请定期使用完整导出功能，把原音频、文字稿、署名与日期保存在自己的设备，并另存一份备份。
+                    声音与元数据分别存储在服务端对象存储和数据库中，可跨设备访问。我们不承诺永久保存。站内恢复副本每日加密生成，保留
+                    7
+                    天；定期做样本还原校验，但同站点副本不等于跨账号或异地备份。请定期使用完整导出功能，把原音频、文字稿、署名与日期保存在自己的设备，并另存一份备份。
                   </p>
                   <p>
                     未来年份是档案标记，不会把声音锁到那一年；第一版不发送定时邮件。若服务计划停止，应提前公告，并提供至少
@@ -2633,7 +2651,9 @@ export default function VoiceApp() {
                 <section>
                   <h2>你可以控制自己的声音。</h2>
                   <p>
-                    可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史备份的清理按运营备份周期处理。
+                    可选择公开或仅自己可见，公开声音可随时转为私密；可以下载、完整导出或删除。公开音频在技术上可能被听众另行录制或保存，请不要录入敏感身份信息。删除后内容立即停止在本站提供，历史恢复副本按
+                    7
+                    天周期清理；维护任务异常时可能延迟，需管理员处理。恢复前必须合并删除清单，避免已删除内容重新出现。
                   </p>
                   <p>
                     每个账户最多保存 200 段、共 500 MB，每小时最多提交 10 段，短声音每段最长 90
