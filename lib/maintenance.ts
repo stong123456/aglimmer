@@ -245,6 +245,16 @@ export async function backupStep() {
     throw e;
   }
 }
+function drillSummary(summary: Record<string, unknown>) {
+  if (!summary.sampleKind) return summary;
+  return {
+    ...summary,
+    scope:
+      summary.sampleKind === 'original-object'
+        ? 'Metadata projected with deletion ledger; one eligible original restored to private scratch storage. Live database not overwritten.'
+        : 'Metadata decrypted and projected with deletion ledger; a canary checked private scratch storage. No user original was restored. Live database not overwritten.',
+  };
+}
 export async function restoreDrill() {
   const date = new Date().toISOString().slice(0, 10),
     id = 'drill:' + date;
@@ -253,7 +263,11 @@ export async function restoreDrill() {
       .prepare('SELECT status,summary FROM maintenance_runs WHERE id=?')
       .bind(id)
       .first<{ status: string; summary: string }>();
-    return { id, status: previous?.status ?? 'busy', ...JSON.parse(previous?.summary ?? '{}') };
+    return {
+      id,
+      status: previous?.status ?? 'busy',
+      ...drillSummary(JSON.parse(previous?.summary ?? '{}')),
+    };
   }
   try {
     const last = await db()
@@ -302,17 +316,19 @@ export async function restoreDrill() {
     } finally {
       await bucket().delete(scratch);
     }
-    return record(id, 'complete', {
-      backup: last.id,
-      verifiedAt: new Date().toISOString(),
-      metadataRows: Object.values(restored).reduce((n, r) => n + r.length, 0),
-      sampleKind: kind,
-      sampleParts: parts,
-      sampleBytes: original.length,
-      scope:
-        'Metadata projected with deletion ledger; one eligible original restored to private scratch storage. Live database not overwritten.',
-      independentCopy: false,
-    });
+    return record(
+      id,
+      'complete',
+      drillSummary({
+        backup: last.id,
+        verifiedAt: new Date().toISOString(),
+        metadataRows: Object.values(restored).reduce((n, r) => n + r.length, 0),
+        sampleKind: kind,
+        sampleParts: parts,
+        sampleBytes: original.length,
+        independentCopy: false,
+      }),
+    );
   } catch (e) {
     await record(id, 'failed', { error: (e as Error).message.slice(0, 240) });
     throw e;
@@ -431,7 +447,13 @@ export async function maintenanceStatus() {
     )
     .all();
   return {
-    runs: runs.results.map((r) => ({ ...r, summary: JSON.parse(String(r.summary)) })),
+    runs: runs.results.map((r) => ({
+      ...r,
+      summary:
+        r.kind === 'drill'
+          ? drillSummary(JSON.parse(String(r.summary)))
+          : JSON.parse(String(r.summary)),
+    })),
     sources: health.results,
     limits: { backupBytes: CAP, retentionDays: 7, independentCopy: false },
     issues: issues.results,
