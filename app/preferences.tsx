@@ -23,7 +23,7 @@ const Context = createContext<{
   t: (s: string) => string;
 } | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('warm'),
+  const [theme, setTheme] = useState<Theme>('night'),
     [locale, setLocale] = useState<Locale>('zh'),
     [ready, setReady] = useState(false);
   useEffect(() => {
