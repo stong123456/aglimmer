@@ -1,24 +1,29 @@
 'use client';
-import { ArrowRight, Moon, Play, Sparkles, Headphones } from 'lucide-react';
+import { ArrowRight, Moon, Play, Sparkles, Film } from 'lucide-react';
 import { type ClassicQuote } from '@/lib/quotes';
 import { classicListeningItem } from '@/lib/listening';
-import { quietChinese, orderedSelection, COURAGE_IDS, LONG_STORY_IDS } from '@/lib/curation';
+import { quietChinese, orderedSelection, COURAGE_IDS, CHINESE_LIFE_IDS } from '@/lib/curation';
+import {
+  isBedtimeRecording,
+  LIBRARY_SHELVES,
+  matchesShelf,
+  librarySummary,
+} from '@/lib/library-discovery';
 import { durationLabel } from '@/lib/shared';
 import { usePreferences } from './preferences';
 import { useClassicSources } from './classic-sources';
 import { useListening } from './listening-player';
 export function quietClassics(values: ClassicQuote[]): ClassicQuote[] {
-  return values.filter(
-    (q) =>
-      q.media.provider === 'archive' &&
-      q.sleepSuitable !== false &&
-      (q.sleepSuitable === true || q.theme === 'rest'),
-  );
+  return values.filter(isBedtimeRecording);
 }
-export default function FeaturedListening({ onExplore }: { onExplore: () => void }) {
+export default function FeaturedListening({
+  onExplore,
+}: {
+  onExplore: (params?: Record<string, string>) => void;
+}) {
   const { locale } = usePreferences(),
     L = (zh: string, en: string) => (locale === 'en' ? en : zh);
-  const { hidden, error, reload, catalog } = useClassicSources(),
+  const { hidden, error, reload, catalog, officialSources } = useClassicSources(),
     listening = useListening();
   const available = (catalog ?? []).filter((q) => !hidden?.includes(q.id)),
     night = quietChinese(available),
@@ -50,14 +55,14 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
     },
     {
       id: 'stories',
-      title: L('在故事里，多停留一会儿', 'Stay a little longer in a story'),
+      title: L('看看普通人，如何把日子过成光', 'Small lives, quietly luminous'),
       text: L(
-        '中文成人经典，留给想慢慢听完一个故事的时刻。',
-        'Chinese classics for adults, for moments when a story deserves your time.',
+        '从退休后画画，到两个人一起做陶。来自一条Yit官方的中文人物短片，保留原片画面。',
+        'Chinese life films from the official Yit channel: art, craft and everyday companionship, shown with their original picture.',
       ),
-      label: L('走进长篇故事', 'Explore longer stories'),
-      icon: Headphones,
-      values: orderedSelection(available, LONG_STORY_IDS),
+      label: L('观看生活微纪录', 'Watch everyday life films'),
+      icon: Film,
+      values: orderedSelection(available, CHINESE_LIFE_IDS),
       sleep: false,
     },
   ];
@@ -73,12 +78,12 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
             {hidden === null
               ? L('正在打开原声书架…', 'Opening the original-audio collection…')
               : L(
-                  `${available.length} 段原声与章节 · 诗词、故事与演讲 · 保留原始出处`,
-                  `${available.length} recordings and chapters · Poetry, stories and talks · Original sources`,
+                  `${available.length} 段原声与章节 · 故事、散文、生活短片与演讲`,
+                  `${available.length} recordings / chapters · Stories, essays, life films and talks`,
                 )}
           </p>
         </div>
-        <button className="text-button" onClick={onExplore}>
+        <button className="text-button" onClick={() => onExplore()}>
           {L('探索慢慢听', 'Explore slow listening')} <ArrowRight size={17} />
         </button>
       </div>
@@ -151,6 +156,32 @@ export default function FeaturedListening({ onExplore }: { onExplore: () => void
           ))}
         </div>
       )}
+      {hidden !== null ? (
+        <div className="discovery-strip">
+          <div>
+            <strong>{L('总有一个书架，适合此刻的你', 'A shelf for the moment you are in')}</strong>
+            <p className="small-note">
+              {librarySummary(available).books}{' '}
+              {L(
+                '本书与录音合集，按章节慢慢听',
+                'books & audio collections to explore chapter by chapter',
+              )}
+            </p>
+          </div>
+          <div className="chips">
+            {LIBRARY_SHELVES.filter((s) => s.id !== 'all').map((s) => (
+              <button key={s.id} onClick={() => onExplore({ shelf: s.id })}>
+                {L(s.zh, s.en)}{' '}
+                <small>{available.filter((q) => matchesShelf(q, s.id)).length}</small>
+              </button>
+            ))}
+            <button onClick={() => onExplore({ sources: 'official' })}>
+              {L('官方中文好节目', 'Official Chinese programmes')} ↗{' '}
+              <small>{officialSources.filter((s) => !hidden.includes(s.id)).length}</small>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

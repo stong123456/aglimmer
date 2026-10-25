@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { db, bucket, HttpError } from './server';
 import { CLASSIC_QUOTES, WITHDRAWN_CLASSIC_IDS } from './quotes';
+import { OFFICIAL_SOURCES } from './official-sources';
 import { sourceAudioUrl } from './listening';
 import { QUIET_ZH_IDS } from './curation';
 import {
@@ -344,11 +345,12 @@ export async function scanSources() {
     }>(),
     now = Date.now();
   const map = new Map(records.results.map((r) => [r.id, r]));
-  const todo = CLASSIC_QUOTES.filter(
-    (q) =>
-      !WITHDRAWN_CLASSIC_IDS.includes(q.id) &&
-      (!map.has(q.id) || Date.parse(map.get(q.id)!.next_check_at) <= now),
-  )
+  const todo = [...CLASSIC_QUOTES, ...OFFICIAL_SOURCES]
+    .filter(
+      (q) =>
+        !WITHDRAWN_CLASSIC_IDS.includes(q.id) &&
+        (!map.has(q.id) || Date.parse(map.get(q.id)!.next_check_at) <= now),
+    )
     .sort((a, b) => {
       const x = map.get(a.id),
         y = map.get(b.id);
@@ -366,12 +368,14 @@ export async function scanSources() {
       http = 0,
       note = 'Network or regional access could not be confirmed';
     try {
-      const url =
-        q.media.provider === 'archive'
+      const external = 'accessMode' in q;
+      const url = external
+        ? q.url
+        : q.media.provider === 'archive'
           ? sourceAudioUrl(q)
           : `https://www.youtube.com/oembed?url=${encodeURIComponent(q.sourceUrl)}&format=json`;
       const r = await fetch(url, {
-        headers: q.media.provider === 'archive' ? { Range: 'bytes=0-1023' } : {},
+        headers: !external && q.media.provider === 'archive' ? { Range: 'bytes=0-1023' } : {},
         signal: AbortSignal.timeout(8000),
         redirect: 'follow',
       });
@@ -381,7 +385,14 @@ export async function scanSources() {
         note = 'Source returned ' + r.status;
         await r.body?.cancel();
       } else if (r.ok) {
-        if (q.media.provider === 'archive') {
+        if (external) {
+          if (/text\/html/i.test(r.headers.get('content-type') ?? '')) {
+            status = 'available';
+            note =
+              'Official programme page responded; episode access and terms remain with its publisher';
+          }
+          await r.body?.cancel();
+        } else if (q.media.provider === 'archive') {
           const reader = r.body?.getReader(),
             chunk = await reader?.read();
           await reader?.cancel();

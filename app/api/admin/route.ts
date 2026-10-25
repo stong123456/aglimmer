@@ -1,7 +1,7 @@
 import { readBody } from '@/lib/server';
 import { adminQuery, pageInfo } from '@/lib/admin-query';
 import { hiddenClassics } from '@/lib/classic-visibility';
-import { CLASSIC_QUOTES } from '@/lib/quotes';
+import { sourceRecord } from '@/lib/source-registry';
 import {
   db,
   identity,
@@ -72,12 +72,12 @@ export async function GET(req: Request) {
     return json({
       voices: rows.results.map((r) => toVoice(r)),
       reports: reports.results.map((r) => {
-        const quote = CLASSIC_QUOTES.find((q) => 'quote:' + q.id === r.voice_id);
+        const quote = sourceRecord(String(r.voice_id).replace(/^quote:/, ''));
         return quote
           ? {
               ...r,
               classicHidden: classicHidden.includes(quote.id),
-              title: `经典素材 · ${quote.author} · ${quote.zh}`,
+              title: `内容来源 · ${quote.credit} · ${quote.title}`,
             }
           : r;
       }),
@@ -99,13 +99,9 @@ export async function POST(req: Request) {
     const u = await admin();
     const body = await readBody(req);
     if (['hide_classic', 'restore_classic'].includes(String(body.action))) {
-      const quote = CLASSIC_QUOTES.find((q) => q.id === body.id);
+      const quote = sourceRecord(String(body.id));
       if (!quote) throw new HttpError(404, '没有找到这条经典素材');
-      if (
-        body.action === 'restore_classic' &&
-        quote.originalLanguage === 'zh' &&
-        quote.kind === 'poetry'
-      )
+      if (body.action === 'restore_classic' && quote.retired)
         throw new HttpError(409, '这批录音已因听感反馈撤下，请先更换音源。');
       await db()
         .prepare(

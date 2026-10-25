@@ -7,7 +7,7 @@ import {
   quietChinese,
   orderedSelection,
   COURAGE_IDS,
-  LONG_STORY_IDS,
+  CHINESE_LIFE_IDS,
   firstListenSelection,
 } from '../lib/curation.ts';
 test('backup encryption authenticates bytes, key and object context', async () => {
@@ -70,7 +70,7 @@ test('first listen and homepage use Chinese prose, never withdrawn poetry or dup
   const previews = [
     chinese,
     orderedSelection(CLASSIC_QUOTES, COURAGE_IDS),
-    orderedSelection(CLASSIC_QUOTES, LONG_STORY_IDS),
+    orderedSelection(CLASSIC_QUOTES, CHINESE_LIFE_IDS),
   ].flatMap((l) => l.slice(0, 3).map((q) => q.id));
   assert.equal(new Set(previews).size, 9);
   assert.ok(previews.every((id) => !WITHDRAWN_CLASSIC_IDS.includes(id)));

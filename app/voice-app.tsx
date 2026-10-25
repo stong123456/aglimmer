@@ -416,7 +416,7 @@ export default function VoiceApp() {
       notify((e as Error).message);
     }
   }
-  const navigate = (v: View) => {
+  const navigate = (v: View, params: Record<string, string> = {}) => {
     setView(v);
     setSelected(null);
     setSubmitMessage('');
@@ -424,6 +424,7 @@ export default function VoiceApp() {
     const url = new URL(location.href);
     url.search = '';
     if (v !== 'wall') url.searchParams.set('view', v);
+    for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
     history.pushState({}, '', url);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1550,7 +1551,7 @@ export default function VoiceApp() {
                   </div>
                   <Landscape />
                 </section>
-                <FeaturedListening onExplore={() => navigate('quotes')} />
+                <FeaturedListening onExplore={(params) => navigate('quotes', params)} />
                 <section className="wall-section">
                   {voices[0] && canMakePostcard(voices[0]) ? (
                     <div className="postcard-invite">
@@ -2644,7 +2645,7 @@ export default function VoiceApp() {
                 <section>
                   <h2>经典素材的出处与权利。</h2>
                   <p>
-                    声音灵感馆整理已有的诗词朗读、官方演讲与电影独白，公版录音连接来源文件播放，官方演讲保留视频播放器，不转存或剪辑音轨。中英文为本站导读或公版原句的自主意译，不代表官方字幕。LibriVox
+                    声音灵感馆整理故事、散文、自然书籍与官方人物短片，公版录音连接来源文件播放，官方视频保留画面和播放器，不转存或剪辑音轨。没有录音转载授权的节目只提供官方入口，不计入站内录音数量。中英文为本站导读或公版原句的自主意译，不代表官方字幕。LibriVox
                     的公有领域声明以美国为依据，其他地区可能不同。每条素材保留来源与使用说明；版权或出处问题可直接反馈，审核员可以暂停展示并核对。
                   </p>
                 </section>

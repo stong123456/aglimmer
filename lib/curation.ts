@@ -30,3 +30,12 @@ export function firstListenSelection(values: ClassicQuote[], mood = '') {
     12,
   );
 }
+
+export const CHINESE_LIFE_IDS = [
+  'yit-family-creating-together',
+  'yit-painting-after-retirement',
+  'yit-botanical-painter',
+  'yit-couple-making-pottery',
+  'yit-bamboo-craft',
+  'yit-longquan-celadon',
+];

@@ -319,6 +319,50 @@ try {
     200,
   );
   assert.deepEqual((await request('/api/classics')).d.hidden, withdrawn);
+  const official = (await request('/api/classics?catalog=1')).d.officialSources;
+  assert.ok(official.length >= 20);
+  const officialId = official[0].id;
+  assert.equal(
+    (
+      await request('/api/classics/report', '', 'POST', {
+        id: officialId,
+        reason: 'Please verify this official programme source link.',
+      })
+    ).r.status,
+    201,
+  );
+  assert.equal(
+    (await request('/api/admin', b.cookie, 'POST', { action: 'hide_classic', id: officialId })).r
+      .status,
+    403,
+  );
+  assert.equal(
+    (await request('/api/admin', a.cookie, 'POST', { action: 'hide_classic', id: officialId })).r
+      .status,
+    200,
+  );
+  assert.ok(
+    !(await request('/api/classics?catalog=1')).d.officialSources.some((s) => s.id === officialId),
+  );
+  assert.ok(
+    (await request('/api/admin', a.cookie)).d.reports.some(
+      (r) =>
+        r.voice_id === 'quote:' + officialId &&
+        r.classicHidden &&
+        r.title.includes(official[0].publisher),
+    ),
+  );
+  assert.equal(
+    (await request('/api/admin', a.cookie, 'POST', { action: 'restore_classic', id: officialId })).r
+      .status,
+    200,
+  );
+  assert.ok(
+    (await request('/api/classics?catalog=1')).d.officialSources.some((s) => s.id === officialId),
+  );
+  console.log(
+    'PASS official programme link reports, admin-only removal and restoration share catalog visibility',
+  );
   console.log(
     'PASS public source reports, duplicate handling, admin-only takedown, audit trail and restoration',
   );

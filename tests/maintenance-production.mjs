@@ -17,6 +17,10 @@ const modules = await Promise.all(
 const access = 'a'.repeat(64),
   secret = 'b'.repeat(64);
 let cloudStatus = 206;
+const officialPrograms = JSON.parse(
+  await fs.readFile('lib/official-listening-sources.json', 'utf8'),
+);
+const officialHosts = new Set(officialPrograms.map((s) => new URL(s.url).hostname));
 const mf = new Miniflare({
   modules,
   modulesRoot: root,
@@ -32,9 +36,17 @@ const mf = new Miniflare({
   outboundService: async (req) => {
     const u = new URL(req.url);
     assert.ok(
-      ['archive.org', 'www.youtube.com'].includes(u.hostname),
+      ['archive.org', 'www.youtube.com'].includes(u.hostname) || officialHosts.has(u.hostname),
       'Only reviewed sources may be fetched',
     );
+    if (officialHosts.has(u.hostname))
+      return new Response(
+        cloudStatus === 206 ? '<!doctype html><title>Official programme</title>' : null,
+        {
+          status: cloudStatus === 206 ? 200 : cloudStatus,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        },
+      );
     if (u.hostname === 'www.youtube.com') return Response.json({ title: 'Official source' });
     return new Response(cloudStatus === 206 ? new Uint8Array([73, 68, 51, 1, 2, 3]) : null, {
       status: cloudStatus,
@@ -228,6 +240,51 @@ try {
   );
   console.log(
     'PASS bounded source checks, repeated 404 takedown, no false restoration on a regional 403, recovery on a successful source response',
+  );
+  // Finish the unseen queue in the fixture so one due programme page is selected deterministically.
+  const fullCatalog = await (
+    await mf.dispatchFetch('https://aglimmer.test/api/classics?catalog=1')
+  ).json();
+  const records = [...fullCatalog.items, ...fullCatalog.officialSources];
+  for (let start = 0; start < records.length; start += 50)
+    await DB.batch(
+      records
+        .slice(start, start + 50)
+        .map((s) =>
+          DB.prepare(
+            "INSERT INTO source_health(id,status,failures,checked_at,next_check_at,note,http_status) VALUES(?,'available',0,'2026-10-25','2099-01-01','fixture',200) ON CONFLICT(id) DO UPDATE SET next_check_at='2099-01-01'",
+          ).bind(s.id),
+        ),
+    );
+  const programme = officialPrograms[0];
+  await DB.prepare(
+    "UPDATE source_health SET status='uncertain',failures=0,checked_at='2000-01-01',next_check_at='2000-01-01' WHERE id=?",
+  )
+    .bind(programme.id)
+    .run();
+  cloudStatus = 206;
+  await request('sources');
+  assert.equal(
+    (await DB.prepare('SELECT status FROM source_health WHERE id=?').bind(programme.id).first())
+      .status,
+    'available',
+  );
+  for (let i = 0; i < 2; i++) {
+    cloudStatus = 404;
+    await DB.prepare(
+      "UPDATE source_health SET next_check_at='2000-01-01',checked_at='2000-01-01' WHERE id=?",
+    )
+      .bind(programme.id)
+      .run();
+    await request('sources');
+  }
+  assert.ok(
+    !(
+      await (await mf.dispatchFetch('https://aglimmer.test/api/classics?catalog=1')).json()
+    ).officialSources.some((s) => s.id === programme.id),
+  );
+  console.log(
+    'PASS reviewed official HTML links participate in bounded health checks and repeated missing-page removal',
   );
   const part = snap.objects[0].parts[0];
   await BUCKET.put(part.key, new Uint8Array([1, 2, 3]));

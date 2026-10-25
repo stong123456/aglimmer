@@ -1,3 +1,4 @@
+import { OFFICIAL_SOURCES } from '@/lib/official-sources';
 import { CLASSIC_QUOTES } from '@/lib/quotes';
 import { hiddenClassics } from '@/lib/classic-visibility';
 import { db, fail, json } from '@/lib/server';
@@ -12,7 +13,10 @@ export async function GET(req: Request) {
       hidden,
       ...(health ? { health: health.results } : {}),
       ...(new URL(req.url).searchParams.get('catalog') === '1'
-        ? { items: CLASSIC_QUOTES.filter((q) => !hidden.includes(q.id)) }
+        ? {
+            items: CLASSIC_QUOTES.filter((q) => !hidden.includes(q.id)),
+            officialSources: OFFICIAL_SOURCES.filter((q) => !hidden.includes(q.id)),
+          }
         : {}),
     });
   } catch (e) {
