@@ -1,7 +1,7 @@
 'use client';
 import { LocalizedView } from './preferences';
 import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { type Voice, dateLabel } from '@/lib/shared';
 import { useClassicSources } from './classic-sources';
 import { useListening } from './listening-player';
@@ -99,17 +99,30 @@ export function GentleListening({
               {fallback.slice(0, 3).map((q) => (
                 <button
                   key={q.id}
-                  className="session-track"
-                  onClick={() =>
-                    listening.start(fallback.map(classicListeningItem), 'classic:' + q.id)
+                  className={
+                    listening.current?.catalogId === q.id ? 'session-track active' : 'session-track'
                   }
+                  aria-pressed={listening.current?.catalogId === q.id && listening.playing}
+                  onClick={() => {
+                    if (listening.current?.catalogId === q.id) listening.toggle();
+                    else listening.start(fallback.map(classicListeningItem), 'classic:' + q.id);
+                  }}
                 >
-                  <Play size={16} aria-hidden />
+                  {listening.current?.catalogId === q.id && listening.playing ? (
+                    <Pause size={16} aria-hidden />
+                  ) : (
+                    <Play size={16} aria-hidden />
+                  )}
                   <span>
                     {locale === 'en' ? q.workEn : q.work}
                     <small>
                       {locale === 'en' ? q.authorEn : q.author} ·{' '}
                       {locale === 'en' ? 'Source recording' : '经典原声'}
+                      {listening.current?.catalogId === q.id && listening.playing
+                        ? locale === 'en'
+                          ? ' · Playing · Tap to pause'
+                          : ' · 正在播放 · 点击暂停'
+                        : ''}
                     </small>
                   </span>
                 </button>
@@ -129,7 +142,11 @@ export function GentleListening({
               换几段声音 →
             </button>
           )}
-          <p className="small-note">点击才播放，每段结束后由你选择下一段。</p>
+          <p className="small-note">
+            {locale === 'en'
+              ? 'Tap to listen. Pause or choose another recording at any time.'
+              : '点击才播放，随时可以暂停或选择下一段。'}
+          </p>
         </section>
       }
     </LocalizedView>

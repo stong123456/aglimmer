@@ -22,6 +22,7 @@ import {
 import { durationLabel } from '@/lib/shared';
 import { resumePosition } from '@/lib/podcast';
 import type { YouTubePlayer } from '@/lib/youtube-player';
+import { videoCommand } from '@/lib/video-controller';
 type StartOptions = { sleep?: boolean; minutes?: number };
 type ListeningContext = {
   current: ListeningItem | null;
@@ -39,6 +40,7 @@ export function useListening() {
 }
 type VideoHandlers = {
   ready: (player: YouTubePlayer) => void;
+  disposed: (player: YouTubePlayer) => void;
   state: (state: number) => void;
   error: () => void;
   blocked: () => void;
@@ -81,7 +83,12 @@ function SourceVideo({ item, handlers }: { item: ListeningItem; handlers: VideoH
       });
     return () => {
       cancelled = true;
-      player?.destroy();
+      if (player) {
+        latest.current.disposed(player);
+        try {
+          player.destroy();
+        } catch {}
+      }
       element.remove();
     };
   }, [item.id]);
@@ -132,7 +139,9 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
     const item = active.current;
     if (!item) return;
     const time =
-      item.provider === 'audio' ? audio.current?.currentTime : video.current?.getCurrentTime();
+      item.provider === 'audio'
+        ? audio.current?.currentTime
+        : videoCommand(video, (p) => p.getCurrentTime());
     if (time && Number.isFinite(time)) {
       try {
         localStorage.setItem('glimmer-progress:' + item.id, String(time));
@@ -142,7 +151,7 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
   function pause() {
     intent.current = false;
     audio.current?.pause();
-    video.current?.pauseVideo();
+    videoCommand(video, (p) => p.pauseVideo());
     setPlaying(false);
     setLoading(false);
     saveProgress();
@@ -188,7 +197,7 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
 
     saveProgress();
     audio.current?.pause();
-    video.current?.pauseVideo();
+    videoCommand(video, (p) => p.pauseVideo());
     video.current = null;
     generation.current++;
     setMediaEpoch(generation.current);
@@ -273,7 +282,7 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
     if (intent.current) {
       intent.current = false;
       audio.current?.pause();
-      video.current?.pauseVideo();
+      videoCommand(video, (p) => p.pauseVideo());
       setPlaying(false);
       setLoading(false);
       return;
@@ -292,15 +301,21 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         setError('请点击来源链接检查这段录音。 / Please check the source link.');
       });
-    } else if (video.current) video.current.playVideo();
-    else handlers.current.activate(active.current);
+    } else if (
+      !videoCommand(video, (p) => {
+        p.playVideo();
+        return true;
+      })
+    )
+      handlers.current.activate(active.current);
   }, []);
   const openSleep = useCallback(() => setFull(true), []);
   const close = useCallback(() => {
     generation.current++;
     intent.current = false;
     audio.current?.pause();
-    video.current?.pauseVideo();
+    videoCommand(video, (p) => p.pauseVideo());
+    video.current = null;
     active.current = null;
     items.current = [];
     setCurrent(null);
@@ -354,10 +369,10 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
       handlers.current.check();
       setNow(Date.now());
       if (active.current?.provider === 'youtube' && video.current) {
-        const n = video.current.getCurrentTime();
-        if (Number.isFinite(n)) setPosition(n);
-        const d = video.current.getDuration();
-        if (d > 0) setDuration(d);
+        const n = videoCommand(video, (p) => p.getCurrentTime());
+        if (typeof n === 'number' && Number.isFinite(n)) setPosition(n);
+        const d = videoCommand(video, (p) => p.getDuration());
+        if (typeof d === 'number' && d > 0) setDuration(d);
       }
       if (Date.now() - progressAt.current > 5000) {
         progressAt.current = Date.now();
@@ -458,7 +473,7 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
     remaining = remainingSleepSeconds(deadline, now || Date.now());
   const seek = (n: number) => {
     if (current?.provider === 'audio' && audio.current) audio.current.currentTime = n;
-    else video.current?.seekTo(n, true);
+    else videoCommand(video, (p) => p.seekTo(n, true));
     setPosition(n);
   };
   return (
@@ -613,14 +628,33 @@ export function ListeningProvider({ children }: { children: ReactNode }) {
                     return;
                   video.current = p;
                   setLoading(false);
-                  if (!handlers.current.check() && intent.current) p.playVideo();
+                  if (
+                    !handlers.current.check() &&
+                    intent.current &&
+                    !videoCommand(video, (player) => {
+                      player.playVideo();
+                      return true;
+                    })
+                  ) {
+                    intent.current = false;
+                    setPlaying(false);
+                    setError(
+                      L(
+                        '官方播放器暂不可用，请选择下一段或打开原站。',
+                        'The official player is unavailable. Choose the next item or open the source.',
+                      ),
+                    );
+                  }
+                },
+                disposed: (p) => {
+                  if (video.current === p) video.current = null;
                 },
                 state: (n) => {
                   if (mediaEpoch !== generation.current || active.current?.id !== current.id)
                     return;
                   if (n === 1) {
                     if (hardStop.current || handlers.current.check()) {
-                      video.current?.pauseVideo();
+                      videoCommand(video, (p) => p.pauseVideo());
                       return;
                     }
                     intent.current = true;

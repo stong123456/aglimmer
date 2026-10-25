@@ -10,6 +10,43 @@ import {
   type ListeningItem,
 } from '../lib/listening.ts';
 import { CLASSIC_QUOTES } from '../lib/quotes.ts';
+import { videoCommand } from '../lib/video-controller.ts';
+import type { YouTubePlayer } from '../lib/youtube-player.ts';
+test('a detached iframe cannot interrupt changing recordings, closing or progress checks', () => {
+  const stale = new Proxy({} as YouTubePlayer, {
+    get: () => () => {
+      throw new TypeError("Cannot read properties of null (reading 'src')");
+    },
+  });
+  for (const action of [
+    (p: YouTubePlayer) => p.getCurrentTime(),
+    (p: YouTubePlayer) => p.pauseVideo(),
+    (p: YouTubePlayer) => p.getDuration(),
+    (p: YouTubePlayer) => p.seekTo(3, true),
+  ]) {
+    const reference = { current: stale as YouTubePlayer | null };
+    assert.equal(videoCommand(reference, action), undefined);
+    assert.equal(reference.current, null);
+    let called = false;
+    videoCommand(reference, () => {
+      called = true;
+    });
+    assert.equal(called, false);
+  }
+  const reference = { current: { getCurrentTime: () => 12 } as YouTubePlayer | null };
+  assert.equal(
+    videoCommand(reference, (p) => p.getCurrentTime()),
+    12,
+  );
+  assert.ok(reference.current);
+  const replacement = reference.current;
+  reference.current = stale;
+  videoCommand(reference, () => {
+    reference.current = replacement;
+    throw Error('Late failure');
+  });
+  assert.equal(reference.current, replacement);
+});
 const queue = ['one', 'two', 'three'].map((id) => ({ id }) as ListeningItem);
 const settings = { autoNext: true, stopAfterId: '', deadline: 0, now: 1000 };
 test('continuous playback advances once and stops at the queue boundary without looping', () => {
